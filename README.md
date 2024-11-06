@@ -16,4 +16,5 @@ berie aj viac grafove vstupy, teda pokial `INPUT.g6` obsahuje viac grafov malo b
 
 # todo
 nejake upgrady na baseline, co je teda zmyslom projektu
+
 nejaky rozumny algoritmus na hladanie farbenia
