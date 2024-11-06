@@ -1,1 +1,2 @@
 # rocnikovy
+skusobne readmecko
