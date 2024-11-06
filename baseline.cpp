@@ -54,7 +54,6 @@ int main(){
     while(s == "graph"){
         count++;
         if(count%100 == 0)cout<<count<<endl;
-        if(count == 1000)break;
         int n, m;cin>>n>>m;
         vector<vector<int>> g(n);
         for(int i = 0;i<m;i++){
@@ -65,9 +64,8 @@ int main(){
         }
         if(check_critical(g)){
             cout<<"is critical"<<endl;
-            break;
         }
-        // else cout<<"not critical"<<endl;
+        else cout<<"not critical"<<endl;
         cin>>s;
     }
     cout<<count<<endl;

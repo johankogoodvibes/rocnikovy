@@ -10,7 +10,7 @@ function run_include(){
     exe=${1%.*}
     coloring=$2
     if [ "$exe.cpp" -nt "$exe" ] || [ "$coloring" -nt "$exe" ];then
-        $CXX $CXXFLAGS $exe.cpp $coloring -o $exe && echo compiled && time ./$exe
+        echo compiling "$exe" && $CXX $CXXFLAGS $exe.cpp $coloring -o $exe && echo compiled && time ./$exe
     else
         echo "up to date" && time ./$exe
     fi
@@ -27,6 +27,10 @@ function test(){
 function parse_graph(){
     graph=$1
     where=$2
-    gcc -o showg showg.c && make parse && echo compiled && ./showg < $graph | ./parse > $where
+    if [ "parse.cpp" -nt "parse" ] || [ "showg.c" -nt "showg" ];then
+        gcc -o showg showg.c && make parse && echo compiled && ./showg < $graph | ./parse > $where
+    else
+        echo up to date && ./showg < $graph | ./parse > $where
+    fi
 }
 
