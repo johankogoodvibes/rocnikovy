@@ -2,9 +2,13 @@
 
 using namespace std;
 
-int main(){
+int main(int argc, char* argv[]){
+    int count;
+    if(argc<2)count = 100;
+    else count = atoi(argv[1]);
+    cerr<<count<<endl;
     string s; cin>>s;
-    while(s != "koniec"){
+    while(s != "koniec"&& count--){
         cout<<"graph"<<endl;
         string dummy; cin>>dummy>>dummy;
         

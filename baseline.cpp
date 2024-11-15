@@ -1,54 +1,34 @@
 #include <iostream>
 #include <vector>
-#include "coloring/color-2n.h"
+#include <chrono>
+#include "checker/critical_checker.h"
 #include "template.h"
 
 using namespace std;
 
-vector<vector<int>> vyhod(vector<vector<int>> g, int v){
-    vector<vector<int>> gc;
-    for(int i = 0;i< sz(g);i++){
-        if(i == v)continue;
-        gc.push_back({});
-        for(auto j:g[i]){
-            if(j!=v){
-                if(j>v)j--;
-                gc.back().push_back(j);
-            }
-        }
-    }
-    return gc;
-}
 
 bool check_critical(vector<vector<int>>&g){
+    create_critical_checker(g);
     vector<pair<int, int>> edges;
-    for(int i = 0;i<sz(g);i++){
+    for(int i = 0;i<(int)g.size();i++){
         for(auto s:g[i]){
             if(i<s) edges.push_back({i, s});
         }
     }
     for(auto [a, b]:edges){
-        // cerr<<"kontrolujem "<<a<<' '<<b<<endl;
-        // dbg("graf g");
-        // dbg_graph(g);
-        auto nb = vyhod(g, b);
-        // dbg("graf g - b");
-        // dbg_graph(nb);
-        auto na = vyhod(nb, a);
-        // dbg("graf g-b-a");
-        // dbg_graph(na);
-        if(!is_colorable(na)){
+        ignore_edge(a, b);
+        if(!is_colorable()){
+            delete_critical_checker();
             return false;
         }
-        else {
-            // cerr<< "hrana "<< a<<' '<<b<<" je kriticka\n";
-        }
+        unignore_edge(a, b);
     }
+    delete_critical_checker();
     return true;
 }
 
-
 int main(){
+    auto start = chrono::high_resolution_clock::now();
     string s;cin>>s;
     int count = 0;
     while(s == "graph"){
@@ -68,5 +48,7 @@ int main(){
         else cout<<"not critical"<<endl;
         cin>>s;
     }
-    cout<<count<<endl;
+    auto end = chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed = end - start;
+    cerr<<endl<<"solved "<< count << " snarks, time: "<<elapsed.count()<<"s"<<endl;
 }
