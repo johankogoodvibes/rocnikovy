@@ -1,7 +1,7 @@
 #include "critical_checker.h"
 #include "../template.h"
 #include <map>
-
+//
 struct edge{
     int a, b, c;
     edge(int a, int b, int c) : a(a), b(b), c(c){}
