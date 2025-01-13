@@ -1,25 +1,62 @@
 #include <iostream>
 #include <vector>
+#include <set>
+#include <queue>
 #include <chrono>
 #include "checker/critical_checker.h"
 #include "template.h"
+
 using namespace std;
 
+void dfs5(vector<vector<int>>&g, set<pair<int, int>>&edges, set<pair<int, int>> &solved, int v, int c, vector<int>& z){
+    z.push_back(v);
+    if(z.size() == 5){
+        if(v != c){
+            z.pop_back();
+            return;
+        }
+        for(int i = 1;i< (int)z.size();i++){
+            int x = z[i], y = z[i-1];
+            if(x>y)swap(x, y);
+            // dbg("kriticka je aj hrana", make_pair(x, y));
+            // edges.erase({x, y});
+            solved.insert({x, y});
+        }
+        z.pop_back();
+        return;
+    }
+    for(int i = 0;i< (int)z.size()-1;i++)if(z[i] == v){
+        z.pop_back();
+        return;
+    }
+    for(auto i : g[v]){
+        dfs5(g, edges, solved, i, c, z);
+    }
+    z.pop_back();
+    return;
+}
 
 bool check_critical(vector<vector<int>>&g){
+    set<pair<int, int>> edges;
+    set<pair<int, int>> solved;
     create_critical_checker(g);
-    vector<pair<int, int>> edges;
     for(int i = 0;i<(int)g.size();i++){
         for(auto s:g[i]){
-            if(i<s) edges.push_back({i, s});
+            if(i<s) edges.insert({i, s});
         }
     }
-    for(auto [a, b]:edges){
+    while(!edges.size()==0){
+        auto [a, b] = *edges.begin();
+        edges.erase({a, b});
         ignore_edge(a, b);
-        if(!is_colorable()){
+        // dbg("kontrolujem", make_pair(a, b));
+        if(solved.count({a, b}) == 0 && !is_colorable()){
             delete_critical_checker();
             return false;
         }
+        solved.erase({a, b});
+        vector<int> n;
+        dfs5(g, edges, solved, a, b, n);
         unignore_edge(a, b);
     }
     delete_critical_checker();

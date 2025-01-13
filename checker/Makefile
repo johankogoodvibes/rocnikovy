@@ -11,5 +11,5 @@ checker-sat.o: checker-sat.cpp ../template.h ../zChaff/libsat.a
 
 # Clean up
 clean:
-	rm -f color-2n.o
+	rm -f color-3n.o
 	rm -f color-sat.o

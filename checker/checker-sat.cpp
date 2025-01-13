@@ -9,11 +9,11 @@ vector<vector<int>> *graph;
 map<pair<int, int>, int> edges;
 vector<vector<vector<int>>> clauses;
 SAT_Manager mng;
-
+int runs_count =0;
 void registruj_hranu(int a, int b){
     if(a>b)swap(a, b);
     if(edges.count({a, b}))return;
-    edges[{a, b}] = edges.size();
+    edges[{a, b}] = (int)edges.size();
 }
 
 int get_edge_id(int a, int b){
@@ -112,10 +112,11 @@ int get_edge_color(int a, int b){
 
 set<int> ignored;
 bool is_colorable(){
+    runs_count++;
     mng = SAT_InitManager();
     SAT_SetNumVariables(mng, edges.size()*NUM_COLORS);
 
-    for(int i = 0;i< clauses.size();i++){
+    for(int i = 0;i< (int)clauses.size();i++){
         if(ignored.count(i))continue;
         for(auto j: clauses[i]){
             int* clause = new int[j.size()];
@@ -165,4 +166,8 @@ void delete_critical_checker(){
     edges.clear();
     clauses.clear();
     mng=NULL;
+}
+
+void print_stats(){
+    cerr<<"sat solver runs: "<< runs_count<<endl;
 }

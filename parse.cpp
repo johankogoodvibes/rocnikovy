@@ -15,7 +15,6 @@ int main(int argc, char* argv[]){
         int n;cin>>dummy;dummy.pop_back();
         n = stoi(dummy);
         vector<vector<int>> g(n);
-        vector<pair<int, int>> ans;
         for(int i = 0;i< n;i++){
             cin>>dummy>>dummy;
             bool koniec = false;
@@ -28,11 +27,10 @@ int main(int argc, char* argv[]){
                 }
                 sus = stoi(dummy);
                 g[i].push_back(sus);
-                if(i< sus)ans.push_back({i, sus});
             }
         }
-        cout<< n<<' '<<ans.size()<<endl;
-        for(auto i: ans)cout<< i.first<<' '<<i.second<<endl;
+        cout<< n<<endl;
+        for(auto i: g)cout<<i[0]<<' '<<i[1]<<' '<<i[2]<<endl;
         cout<<endl;
         cin>>s;
     }

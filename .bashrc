@@ -36,11 +36,24 @@ function run_include(){
     inlcude=${source%.*}
     make -C $path $inlcude.o
     if needs_recompile "$exe" "$exe.cpp" "$path/$inlcude.o" ;then
+        echo $CXX $CXXFLAGS $exe.cpp $path/$inlcude.o -o $exe
         echo compiling "$exe" && $CXX $CXXFLAGS $exe.cpp $path/$inlcude.o -o $exe && echo compiled && echo && ASAN_OPTIONS=detect_leaks=0 ./$exe
     else
         echo "up to date" && echo && ASAN_OPTIONS=detect_leaks=0 ./$exe
     fi
 }
+
+function compare(){
+    checker=$1
+    in=$2
+    shift 2
+    source=("$@")
+    for file in "${source[@]}"; do
+        echo $file $checker $in 
+        run_include $file $checker < $in
+    done
+}
+
 
 function parse_graph(){
     graph=$1
