@@ -22,5 +22,5 @@ void dbg(Args&&... args){
     cout<<endl;
 }
 
-void dbg_graph(vector<vector<int>> g);
+void dbg_graph(vector<vector<int>>& g);
 #endif // temp
