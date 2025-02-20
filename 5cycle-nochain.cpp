@@ -48,9 +48,9 @@ bool check_critical(vector<vector<int>>&g){
     while(!edges.size()==0){
         auto [a, b] = *edges.begin();
         edges.erase({a, b});
+        if(solved.count({a, b}))continue;
         ignore_edge(a, b);
-        // dbg("kontrolujem", make_pair(a, b));
-        if(solved.count({a, b}) == 0 && !is_colorable()){
+        if(!is_colorable()){
             delete_critical_checker();
             return false;
         }
