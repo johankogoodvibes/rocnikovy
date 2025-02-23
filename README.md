@@ -63,7 +63,24 @@ implementuje tuto myslienku s tym ze zatial prehlasi hrany za kriticke ale uz ne
 ### kempecycle-5cycle-nochain
 aplikuje aj `kempecycle-nochain` aj `5cycle-nochain` optimalizacie
 
+### kempecycle
+ked sat solverom zisti ze hrana je kriticka a najde cyklus kde kempeswitchom najdeme inu cirkulaciu s inou nulovou hranou vykona tento kempeswitch a skusi rekurzivne riesit dalej s novou nulovou hranou
+
+trosku si myslim ze nieco nerobi spravne lebo to nejak moc optimalizovalo ale netusim, myslel som ze to nepomoze vobec lebo v niektorych pripadoch viem dokazat ze to nepomoze ale asi v tych ostatnych to dost pomoze
+
 ## performance
+
+*tu uvadzam len tie aspon trosku rychle, lebo to velmi dlho trva na velkych vstupoch*
+
+| prog/in         | test-0-petersen | test-1-critical | test-2-not_crit | test-3-not_crit | test-4-random38 | test-5-random.i | test-6-velkecri | test-7-jozkove_ |
+| --------------- | --------------- | --------------- | --------------- | --------------- | --------------- | --------------- | --------------- | --------------- |
+| kempecycle.cpp  |               1 |             123 |              54 |               3 |             739 |              46 |             879 |              82 |
+| kempecycle-5cyc |               3 |            1017 |             192 |               3 |            1013 |              46 |            7506 |             855 |
+| 5cycle.cpp      |               1 |            1378 |             415 |               4 |            1081 |              47 |           17375 |            2604 |
+
+mam velke podozrenie ze `kempecycle.cpp` program je nekorektny ale zatial som nenasiel vstup kde by neuspel
+
+*outdated tabulka pre porovnanie ostatnych pristupov*
 
 |prog/in| test-0-petersen.in | test-1-critical.in | test-2-not_critical40.in | test-3-not_critical74.in | test-4-random38.in1 | test-5-jozkove_critical.in |
 |---|---|---|---|---|---|---|
@@ -73,10 +90,12 @@ aplikuje aj `kempecycle-nochain` aj `5cycle-nochain` optimalizacie
 | kempecycle-nochain.cpp |5 |1364 |192 |5 |1201 | 855 |
 | kempecycle-5cycle-nochain.cpp |3 |1017 |192 |3 |1013 | 855 |
 
+
+`test-5` su vstupy ktore neobsahuju 5cykly preto su rovnako dobre pre vsetky nad `5cycle.cpp` aj ked som to nebezal
+
 ## todo
 nejake upgrady na baseline, co je teda zmyslom projektu
 
-- implementovat chaining do kempecycle - treba vykonat kempe switch a pokracovat
 - implementovat chaining do kempecycle aj 5cycle zaroven - treba vediet ako by farbenie vyzeralo pre kriticke hrany na 5 cykle
 - kempecycle viem iterovat, ak vhodne pokombinujem kempeho cykly ktore mozu mat rozne farby tak viem najst nejaku novu kriticku hranu
 
