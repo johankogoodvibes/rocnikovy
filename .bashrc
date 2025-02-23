@@ -94,7 +94,7 @@ function compare(){
 
 
     for file in "${source[@]}"; do
-        results+=("| $(basename "$file") |")
+        results+=("$(basename "$file")")
     done
     
     local all_good=true
@@ -106,7 +106,7 @@ function compare(){
             run_include $comp_file $checker < $TESTDIR/$input > $OUTDIR/${comp_file%.*}.out 2> "$ERRDIR/${comp_file%.*}.err"
             local runs_count=$(grep "sat solver runs:" "$ERRDIR/${comp_file%.*}.err" | awk '{print $4}')
             
-            results[$i]+="$runs_count |"
+            results[$i]+=" $runs_count"
         done
         local first_file="$OUTDIR/${source[0]%.*}.out"
         local all_match=true  # Flag to track if everything matches
@@ -119,6 +119,7 @@ function compare(){
         done
         if $all_match; then 
             echo "All outputs match"
+            cp $first_file "$OUTDIR/${input%.*}.out"
         else 
             all_good=false
         fi
@@ -126,18 +127,28 @@ function compare(){
     if $all_good; then
         echo "All programs output the same"
 
-        printf "\n|prog/in|"
-        for input in ${test_names[@]}; do
-            printf " %s |" $input
+        printf "\n| %-15.15s |" "prog/in"  # Left-align, 10-character width for "prog/in"
+        for input in "${test_names[@]}"; do
+            printf " %-15.15s |" "$input" # Left-align, 15-character width for input names
         done
-        printf "\n|---"
+        printf "\n| --------------- "
         for _ in "${test_names[@]}"; do
-            printf "|---"
+            printf "| --------------- "
         done
         printf "|\n"
-        
         for r in "${results[@]}"; do
-            echo $r
+            IFS=' ' read -r program counts <<< "$r"  # Split by spaces
+
+            printf "| %-15.15s |" "$program"
+
+            local counts_array=()
+            read -ra counts_array <<< "$counts"
+
+            for count in "${counts_array[@]}"; do
+                printf " %15.15s |" "$count"
+            done
+
+            printf "\n"
         done
     else 
         echo "some programs output incorrect"
