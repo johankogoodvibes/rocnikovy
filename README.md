@@ -70,6 +70,8 @@ trosku si myslim ze nieco nerobi spravne lebo to nejak moc optimalizovalo ale ne
 
 ## performance
 
+_všetky hodnoty sú v počtoch behu algoritmu na hľadanie farbenia_
+
 *tu uvadzam len tie aspon trosku rychle, lebo to velmi dlho trva na velkych vstupoch*
 
 | prog/in         | test-0-petersen | test-1-critical | test-2-not_crit | test-3-not_crit | test-4-random38 | test-5-random.i | test-6-velkecri | test-7-jozkove_ |
