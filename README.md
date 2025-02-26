@@ -66,7 +66,9 @@ aplikuje aj `kempecycle-nochain` aj `5cycle-nochain` optimalizacie
 ### kempecycle
 ked sat solverom zisti ze hrana je kriticka a najde cyklus kde kempeswitchom najdeme inu cirkulaciu s inou nulovou hranou vykona tento kempeswitch a skusi rekurzivne riesit dalej s novou nulovou hranou
 
-trosku si myslim ze nieco nerobi spravne lebo to nejak moc optimalizovalo ale netusim, myslel som ze to nepomoze vobec lebo v niektorych pripadoch viem dokazat ze to nepomoze ale asi v tych ostatnych to dost pomoze
+### kempecycle-samecolor
+
+ak po najdeni cirkulacie pre nulovu hranu $a, b$ ma BUNV vrchol $a$ hrany farieb 0, 1, 1 a vrchol b hrany farieb 0, 2, 2, vieme aplikovat kempeswitch na cyklus z b v ktorom sa striedaju farby 1, 2 cim dostaneme cirkulaciu kde ma aj b farby 0, 1, 1. potom mame na vyber viac moznosti ked hladame predoslym algoritmom dalsie kriticke hrany
 
 ## performance
 
@@ -76,13 +78,12 @@ _všetky hodnoty sú v počtoch behu algoritmu na hľadanie farbenia_
 
 | prog/in         | test-0-petersen | test-1-critical | test-2-not_crit | test-3-not_crit | test-4-random38 | test-5-random.i | test-6-velkecri | test-7-jozkove_ |
 | --------------- | --------------- | --------------- | --------------- | --------------- | --------------- | --------------- | --------------- | --------------- |
+| kempecycle-same |               1 |             100 |              51 |               2 |             693 |              45 |             512 |              12 |
 | kempecycle.cpp  |               1 |             123 |              54 |               3 |             739 |              46 |             879 |              82 |
 | kempecycle-5cyc |               3 |            1017 |             192 |               3 |            1013 |              46 |            7506 |             855 |
 | 5cycle.cpp      |               1 |            1378 |             415 |               4 |            1081 |              47 |           17375 |            2604 |
 
-mam velke podozrenie ze `kempecycle.cpp` program je nekorektny ale zatial som nenasiel vstup kde by neuspel
-
-*outdated tabulka pre porovnanie ostatnych pristupov*
+*a este outdated tabulka pre porovnanie ostatnych pristupov:*
 
 |prog/in| test-0-petersen.in | test-1-critical.in | test-2-not_critical40.in | test-3-not_critical74.in | test-4-random38.in1 | test-5-jozkove_critical.in |
 |---|---|---|---|---|---|---|
