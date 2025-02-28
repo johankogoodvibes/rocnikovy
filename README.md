@@ -74,27 +74,15 @@ ak po najdeni cirkulacie pre nulovu hranu $a, b$ ma BUNV vrchol $a$ hrany farieb
 
 _všetky hodnoty sú v počtoch behu algoritmu na hľadanie farbenia_
 
-*tu uvadzam len tie aspon trosku rychle, lebo to velmi dlho trva na velkych vstupoch*
-
-| prog/in         | test-0-petersen | test-1-critical | test-2-not_crit | test-3-not_crit | test-4-random38 | test-5-random.i | test-6-velkecri | test-7-jozkove_ |
-| --------------- | --------------- | --------------- | --------------- | --------------- | --------------- | --------------- | --------------- | --------------- |
-| kempecycle-same |               1 |             100 |              51 |               2 |             693 |              45 |             512 |              12 |
-| kempecycle.cpp  |               1 |             123 |              54 |               3 |             739 |              46 |             879 |              82 |
-| kempecycle-5cyc |               3 |            1017 |             192 |               3 |            1013 |              46 |            7506 |             855 |
-| 5cycle.cpp      |               1 |            1378 |             415 |               4 |            1081 |              47 |           17375 |            2604 |
-
-*a este outdated tabulka pre porovnanie ostatnych pristupov:*
-
-|prog/in| test-0-petersen.in | test-1-critical.in | test-2-not_critical40.in | test-3-not_critical74.in | test-4-random38.in1 | test-5-jozkove_critical.in |
-|---|---|---|---|---|---|---|
-| baseline.cpp |15 |3831 |415 |6 |1345 |2604? |
-| 5cycle-nochain.cpp |3 |1555 |415 |4 |1081 |2604? |
-| 5cycle.cpp |1 |1378 |415 |4 |1081 | 2604 |
-| kempecycle-nochain.cpp |5 |1364 |192 |5 |1201 | 855 |
-| kempecycle-5cycle-nochain.cpp |3 |1017 |192 |3 |1013 | 855 |
-
-
-`test-5` su vstupy ktore neobsahuju 5cykly preto su rovnako dobre pre vsetky nad `5cycle.cpp` aj ked som to nebezal
+| prog/in | test-0-petersen.in | test-1-critical.in | test-2-not_critical40.in | test-3-not_critical74.in | test-4-random38.in1 | test-5-random.in2 | test-6-velkecritical.in | test-7-jozkove_critical.in |
+| - | - | - | - | - | - | - | - | - |
+| baseline.cpp | 15 | 3831 | 415 | 6 | 1345 | 49 | 27000 | 2604 |
+| 5cycle-nochain.cpp | 3 | 1555 | 415 | 4 | 1081 | 47 | 18030 | 2604 |
+| 5cycle.cpp | 1 | 1378 | 415 | 4 | 1081 | 47 | 17375 | 2604 |
+| kempecycle-nochain.cpp | 5 | 1364 | 192 | 5 | 1201 | 48 | 8493 | 855 |
+| kempecycle-5cycle-nochain.cpp | 3 | 1017 | 192 | 3 | 1013 | 46 | 7506 | 855 |
+| kempecycle.cpp | 1 | 123 | 54 | 3 | 739 | 46 | 879 | 82 |
+| kempecycle-samecolor.cpp | 1 | 100 | 51 | 2 | 693 | 45 | 512 | 12 |
 
 ## todo
 nejake upgrady na baseline, co je teda zmyslom projektu

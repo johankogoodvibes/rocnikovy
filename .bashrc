@@ -126,29 +126,37 @@ function compare(){
     done
     if $all_good; then
         echo "All programs output the same"
-
+        printf "" > table.txt
         printf "\n| %-15.15s |" "prog/in"  # Left-align, 10-character width for "prog/in"
+        printf "\n| prog/in |" >> table.txt
         for input in "${test_names[@]}"; do
             printf " %-15.15s |" "$input" # Left-align, 15-character width for input names
+            printf " $input |" >> table.txt
         done
-        printf "\n| --------------- "
+        printf "\n| --------------- |"
+        printf "\n| - |" >> table.txt
         for _ in "${test_names[@]}"; do
-            printf "| --------------- "
+            printf " --------------- |"
+            printf " - |" >> table.txt
         done
-        printf "|\n"
+        printf "\n"
+        printf "\n" >> table.txt
         for r in "${results[@]}"; do
             IFS=' ' read -r program counts <<< "$r"  # Split by spaces
 
             printf "| %-15.15s |" "$program"
+            printf "| $program |" >> table.txt
 
             local counts_array=()
             read -ra counts_array <<< "$counts"
 
             for count in "${counts_array[@]}"; do
                 printf " %15.15s |" "$count"
+                printf " $count |" >> table.txt
             done
 
             printf "\n"
+            printf "\n" >> table.txt
         done
     else 
         echo "some programs output incorrect"
