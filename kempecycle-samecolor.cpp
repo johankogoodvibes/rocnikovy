@@ -13,7 +13,6 @@ map<pair<int, int>, int> edgecolors;
 int get_current_edge_color(int a, int b) {
     return edgecolors[{a, b}];
 }
-set<pair<int, int>> solved;
 void dbg_graph(vector<vector<int>>& g) {
     dbg("vypisujem graf");
     for (int i = 0; i < (int)g.size(); i++) {
@@ -64,7 +63,7 @@ void apply_kempeswitch(vector<int>& cycle, int c) {
     }
 }
 
-void solve_kempecycle(vector<vector<int>>& g, int a, int b) {
+void solve_kempecycle(vector<vector<int>>& g, set<pair<int, int>>& solved, int a, int b) {
     if (a > b) swap(a, b);
     if (solved.count({a, b})) return;
     solved.insert({a, b});
@@ -72,7 +71,7 @@ void solve_kempecycle(vector<vector<int>>& g, int a, int b) {
     int s1 = g[a][0] != b ? g[a][0] : g[a][1], s2 = g[b][0] != a ? g[b][0] : g[b][1];
     int c1 = get_current_edge_color(a, s1), c2 = get_current_edge_color(b, s2);
     vector<int> vyrovnat;
-    int vyrovnatc;
+    int vyrovnatc = -1;
     if (c1 != c2) {
         vyrovnat = get_kempe_cycle(g, b, c2, c1);
         vyrovnat.push_back(b);
@@ -117,7 +116,7 @@ void solve_kempecycle(vector<vector<int>>& g, int a, int b) {
             kempe_switch_cycle.push_back(a);
 
             apply_kempeswitch(kempe_switch_cycle, c3);
-            solve_kempecycle(g, i.first, i.second);
+            solve_kempecycle(g, solved, i.first, i.second);
             apply_kempeswitch(kempe_switch_cycle, c3);
         }
     }
@@ -126,7 +125,7 @@ void solve_kempecycle(vector<vector<int>>& g, int a, int b) {
 
 bool check_critical(vector<vector<int>>& g) {
     set<pair<int, int>> edges;
-    solved.clear();
+    set<pair<int, int>> solved;
     create_critical_checker(g);
     for (int i = 0; i < (int)g.size(); i++) {
         for (auto s : g[i]) {
@@ -149,7 +148,7 @@ bool check_critical(vector<vector<int>>& g) {
             }
         }
 
-        solve_kempecycle(g, a, b);
+        solve_kempecycle(g, solved, a, b);
 
         unignore_edge(a, b);
     }
