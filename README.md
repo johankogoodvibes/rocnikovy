@@ -84,6 +84,9 @@ _všetky hodnoty sú v počtoch behu algoritmu na hľadanie farbenia_
 | kempecycle.cpp | 1 | 123 | 54 | 3 | 739 | 46 | 879 | 82 |
 | kempecycle-samecolor.cpp | 1 | 100 | 51 | 2 | 693 | 45 | 512 | 12 |
 
+
+pre velke grafy - napriklad 3000 vrcholove - ptest-10 a 11 dlho trva zbehnut uz len ten sat solver a zvysok je vacsinou instantny
+
 ## todo
 nejake upgrady na baseline, co je teda zmyslom projektu
 

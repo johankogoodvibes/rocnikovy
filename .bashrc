@@ -42,9 +42,9 @@ function run_include(){
     make -C $path $inlcude.o 1>&2
     if needs_recompile "$exe" "$exe.cpp" "$path/$inlcude.o" ;then
         echo $CXX $CXXFLAGS $exe.cpp $path/$inlcude.o -o $BINDIR/$exe 1>&2
-        echo compiling "$exe" 1>&2 && $CXX $CXXFLAGS $exe.cpp $path/$inlcude.o -o $BINDIR/$exe && echo compiled 1>&2 && echo && ASAN_OPTIONS=detect_leaks=0 ./$BINDIR/$exe
+        echo compiling "$exe" 1>&2 && $CXX $CXXFLAGS $exe.cpp $path/$inlcude.o -o $BINDIR/$exe && echo compiled 1>&2 && echo 1>&2 && ./$BINDIR/$exe
     else
-        echo "up to date" 1>&2 && ASAN_OPTIONS=detect_leaks=0 ./$BINDIR/$exe
+        echo "up to date" 1>&2 && ./$BINDIR/$exe
     fi
 }
 
