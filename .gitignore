@@ -33,3 +33,7 @@ vystupy
 .vscode
 errdir
 table.txt
+checker/checker-cadical.o
+checker/checker-kissat.o
+popis/
+skuska/

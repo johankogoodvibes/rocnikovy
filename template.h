@@ -24,8 +24,8 @@ basic_ostream<A, B>& operator<< (basic_ostream<A, B>& os, const C& c){
 
 template<typename... Args>
 void dbg(Args&&... args){
-    ((cout<< args<<" |"), ...);
-    cout<<endl;
+    ((cerr<< args<<" |"), ...);
+    cerr<<endl;
 }
 
 void dbg_graph(vector<vector<int>>& g);

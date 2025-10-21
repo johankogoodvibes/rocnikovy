@@ -51,26 +51,38 @@ function run_include(){
 function run_all(){
     mkdir -p $OUTDIR
     local checker=$1
-    local in=$2
+    local input=$(basename "$2")
     shift 2
     local source=("$@")
+
     for file in "${source[@]}"; do
-        echo $file
-        run_include $file $checker < $in > $OUTDIR/${file%.*}.out
+        echo "running $file < $input" 
+        mkdir -p "$OUTDIR/${file%.*}"
+        run_include $file $checker < $TESTDIR/$input > $OUTDIR/${file%.*}/${input%.*}.out
     done
 
-    local first_file="$OUTDIR/${source[0]%.*}.out"
+    local first_file="$OUTDIR/${source[0]%.*}/${input%.*}.out"
     local all_match=true  # Flag to track if everything matches
 
     for file in "${source[@]:1}"; do  # Skip first file
-        if ! cmp --silent "$first_file" "$OUTDIR/${file%.*}.out"; then
-            echo "Outputs differ: $first_file vs $OUTDIR/${file%.*}.out"
+        if ! cmp --silent "$first_file" "$OUTDIR/${file%.*}/${input%.*}.out"; then
+            echo "Outputs differ: $first_file vs $OUTDIR/${file%.*}/${input%.*}.out"
             all_match=false  # Mark as different
         fi
     done
-
-    # Print only if no mismatches were found
-    $all_match && echo "All outputs match"
+    if $all_match; then 
+        echo "All outputs match"
+        local out_file="$OUTDIR/${input%.*}.out"
+        if [ -f "$out_file" ] && ! cmp --silent "$first_file" "$out_file"; then
+            echo "ERROR - Previous output was different!"
+            cp "$first_file" "$OUTDIR/${input%.*}.out2"
+        else
+            echo "SAVING RESULT - consistent with previous result"
+            cp "$first_file" "$OUTDIR/${input%.*}.out"
+        fi
+    else 
+        all_good=false
+    fi
 }
 
 function compare(){
@@ -103,23 +115,32 @@ function compare(){
         for i in "${!source[@]}"; do
             local comp_file=${source[$i]}
             echo "running $comp_file < $input" 
-            run_include $comp_file $checker < $TESTDIR/$input > $OUTDIR/${comp_file%.*}.out 2> "$ERRDIR/${comp_file%.*}.err"
-            local runs_count=$(grep "sat solver runs:" "$ERRDIR/${comp_file%.*}.err" | awk '{print $4}')
+            mkdir -p "$OUTDIR/${comp_file%.*}"
+            mkdir -p "$ERRDIR/${comp_file%.*}"
+            run_include $comp_file $checker < $TESTDIR/$input > $OUTDIR/${comp_file%.*}/${input%.*}.out 2> "$ERRDIR/${comp_file%.*}/${input%.*}.err"
+            local runs_count=$(grep "sat solver runs:" "$ERRDIR/${comp_file%.*}/${input%.*}.err" | awk '{print $4}')
             
             results[$i]+=" $runs_count"
         done
-        local first_file="$OUTDIR/${source[0]%.*}.out"
+        local first_file="$OUTDIR/${source[0]%.*}/${input%.*}.out"
         local all_match=true  # Flag to track if everything matches
 
         for file in "${source[@]:1}"; do  # Skip first file
-            if ! cmp --silent "$first_file" "$OUTDIR/${file%.*}.out"; then
-                echo "Outputs differ: $first_file vs $OUTDIR/${file%.*}.out"
+            if ! cmp --silent "$first_file" "$OUTDIR/${file%.*}/${input%.*}.out"; then
+                echo "Outputs differ: $first_file vs $OUTDIR/${file%.*}/${input%.*}.out"
                 all_match=false  # Mark as different
             fi
         done
         if $all_match; then 
             echo "All outputs match"
-            cp $first_file "$OUTDIR/${input%.*}.out"
+            local out_file="$OUTDIR/${input%.*}.out"
+            if [ -f "$out_file" ] && ! cmp --silent "$first_file" "$out_file"; then
+                echo "ERROR - Previous output was different!"
+                cp "$first_file" "$OUTDIR/${input%.*}.out2"
+            else
+                echo "SAVING RESULT - consistent with previous result"
+                cp "$first_file" "$OUTDIR/${input%.*}.out"
+            fi
         else 
             all_good=false
         fi

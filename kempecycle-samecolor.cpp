@@ -127,18 +127,25 @@ bool check_critical(vector<vector<int>>& g) {
     create_critical_checker(g);
     for (int i = 0; i < (int)g.size(); i++) {
         for (auto s : g[i]) {
-            if (i < s) edges.insert({i, s});
+            if (i < s) edges.insert({i, s}); 
         }
     }
+    bool ok = true;
+    int runs = 0;
     while (!edges.size() == 0) {
         auto [a, b] = *edges.begin();
         edges.erase({a, b});
         if (solved.count({a, b})) continue;
         ignore_edge(a, b);
 
+        runs++;
         if (!is_colorable()) {
-            delete_critical_checker();
-            return false;
+            if(ok)cerr<<"- has answer: "<<runs<<" runs ";
+            ok = false;
+            unignore_edge(a, b);
+            continue;
+            // delete_critical_checker();
+            // return false;
         }
         for (int i = 0; i < (int)g.size(); i++) {
             for (auto j : g[i]) {
@@ -151,7 +158,7 @@ bool check_critical(vector<vector<int>>& g) {
         unignore_edge(a, b);
     }
     delete_critical_checker();
-    return true;
+    return ok;
 }
 
 int main() {  // toto je furt rovnake

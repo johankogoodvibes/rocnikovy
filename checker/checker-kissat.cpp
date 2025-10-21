@@ -1,15 +1,17 @@
 #include <map>
 #include <set>
 
+extern "C" {
+#include "../kissat_compiled/kissat.h"
+}
 #include "../template.h"
-#include "../zChaff/SAT.h"
 #include "critical_checker.h"
 #define NUM_COLORS 3
 
 vector<vector<int>>* graph;
 map<pair<int, int>, int> edges;
 vector<vector<vector<int>>> clauses;
-SAT_Manager mng;
+vector<int> model_val;
 int runs_count = 0;
 void registruj_hranu(int a, int b) {
     if (a > b) swap(a, b);
@@ -25,10 +27,10 @@ int variable_id(int edgeid, int color) {
     return edgeid * NUM_COLORS + color + 1;
 }
 int true_id(int var) {
-    return var * 2;
+    return var;
 }
 int false_id(int var) {
-    return var * 2 + 1;
+    return -var;
 }
 
 void configure_edges() {
@@ -77,7 +79,7 @@ void create_critical_checker(vector<vector<int>>& g) {
             registruj_hranu(i, j);
         }
     }
-    clauses.resize(edges.size() + 1); // posledne pole je na clauses pre rozdielnost farieb hran
+    clauses.resize(edges.size() + 1);  // posledne pole je na clauses pre rozdielnost farieb hran
 
     configure_edges();
 
@@ -104,11 +106,11 @@ int get_edge_color(int a, int b) {
     if (get_edge_id(a, b) == main_ignored_id) return 0;
     if (ignored.count(get_edge_id(a, b)) != 0) {
         // dbg("incidentna hrana", a, b, "ignorujem", main_ignored);
-        if(main_ignored.count(a))swap(a, b);
+        if (main_ignored.count(a)) swap(a, b);
         // dbg("chcem najst farby vrcholu", a);
         set<int> av = {1, 2, 3};
-        for(auto i : (*graph)[a]){
-            if(i == b)continue;
+        for (auto i : (*graph)[a]) {
+            if (i == b) continue;
             av.erase(get_edge_color(a, i));
         }
         // dbg("mozem pouzit len", av);
@@ -117,7 +119,9 @@ int get_edge_color(int a, int b) {
     int id = get_edge_id(a, b);
     int color = -1;
     for (int i = 0; i < NUM_COLORS; i++) {
-        int akt = SAT_GetVarAsgnment(mng, variable_id(id, i));
+        const int var = variable_id(id, i);
+        const int akt = (var >= 0 && var < (int)model_val.size()) ? model_val[var] : 0;
+
         if (akt == 1) {
             if (color != -1) cerr << "nieco sa pokazilo, mam viac farieb " << a << ' ' << b << endl;
             color = i;
@@ -129,27 +133,37 @@ int get_edge_color(int a, int b) {
 
 bool is_colorable() {
     runs_count++;
-    mng = SAT_InitManager();
-    SAT_SetNumVariables(mng, edges.size() * NUM_COLORS);
-    // dbg("ignored", ignored);
-    for (int i = 0; i < (int)clauses.size(); i++) {
+
+    kissat* solver = kissat_init();
+    kissat_set_option(solver, "quiet", 1);
+
+    const int num_vars = static_cast<int>(edges.size() * NUM_COLORS);
+
+    kissat_reserve(solver, num_vars);
+
+    // Add all non-ignored clauses (DIMACS style: each clause ends with 0)
+    for (int i = 0; i < (int)clauses.size(); ++i) {
         if (ignored.count(i)) continue;
-        for (auto j : clauses[i]) {
-            int* clause = new int[j.size()];
-            copy(j.begin(), j.end(), clause);
-            SAT_AddClause(mng, clause, j.size(), 1);
-            delete[]clause;
+        for (const auto& j : clauses[i]) {
+            for (int lit : j) kissat_add(solver, lit);
+            kissat_add(solver, 0);  // terminate clause
         }
     }
 
-    int status = SAT_Solve(mng);
-    SAT_ReleaseManager(mng);
-    if (status == SATISFIABLE) {
+    int status = kissat_solve(solver);
+    model_val.assign(num_vars + 1, 0);
+    if (status == 10) {
+        for (int v = 1; v <= num_vars; ++v) {
+            model_val[v] = (kissat_value(solver, v) > 0) ? 1 : 0;
+        }
+        kissat_release(solver);
         return true;
-    } else if (status == UNSATISFIABLE) {
+    } else if (status == 20) {
+        kissat_release(solver);
         return false;
     } else {
-        cerr << "zly status" << endl;
+        std::cerr << "zly status" << std::endl;
+        kissat_release(solver);
         return false;
     }
 }
@@ -161,7 +175,7 @@ void ignore_edge(int a, int b) {
     }
     main_ignored = {a, b};
     // dbg(main_ignored);
-    main_ignored_id = get_edge_id(a, b); 
+    main_ignored_id = get_edge_id(a, b);
     for (auto s : (*graph)[a]) {
         ignored.insert(get_edge_id(a, s));
     }
@@ -182,10 +196,9 @@ void delete_critical_checker() {
     graph = NULL;
     edges.clear();
     clauses.clear();
-    mng = NULL;
 }
 
-int get_runs(){return runs_count;}
+int get_runs() { return runs_count; }
 
 void print_stats() {
     cerr << "sat solver runs: " << runs_count << endl;

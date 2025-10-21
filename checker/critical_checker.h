@@ -9,4 +9,5 @@ void ignore_edge(int a, int b);
 void unignore_edge(int a, int b);
 int get_edge_color(int a, int b);
 void print_stats();
+int get_runs();
 #endif // critcheck
