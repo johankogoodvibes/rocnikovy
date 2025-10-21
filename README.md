@@ -87,10 +87,41 @@ _všetky hodnoty sú v počtoch behu algoritmu na hľadanie farbenia_
 
 pre velke grafy - napriklad 3000 vrcholove - ptest-10 a 11 dlho trva zbehnut uz len ten sat solver a zvysok je vacsinou instantny
 
-## todo
+# Bakalarka - stale Jan Gottwies
+
+Tuto zacina moja bakalarka, odvija sa to od programov z rocnikacu, ale skusime nejak lepsie analyzovat, co sa presne deje a preco sa to deje.
+
+## Co ak graf nie je kriticky?
+
+Zatial sme proste povedali ze kriticky nie je. To ale casto nepovie vela o tom, aky je nas algoritmus dobry, lebo vela krat tipneme hned na zaciatku hranu ktora nie je kriticka.
+Preto sme skusili merat to ako dobry mame algoritmus pri nekritickych grafoch trochu inak: skusime pre kazdu hranu odhalit, ci sa ju da odstranit, alebo nie.
+Zaujima nas kolko sat solverov potrebujeme kym odhalime prvu nekriticku hranu a kym to odhalime o vsetkych hranach.
+
+### Novy performance - len vstupy s nekritickymi hranami
+
+Ukazeme pocty potrebne pre verdikt o kazdej hrane - tie kde staci najst nekriticku hranu su v tabulke vyssie.
+
+| prog/in | test-00-petersen.in | test-01-critical.in | test-02-not_critical40.in | test-03-not_critical74.in | test-04-random38.in1 | test-05-random.in2 | test-06-velkecritical.in | test-07-jozkove_critical.in |
+| - | - | - | - | - | - | - | - | - |
+| kempecycle-samecolor.cpp | 1 | 100 | 79 | 21 | 13589 | 3392 | 513 | 13 |
+| kempecycle.cpp | 1 | 136 | 56 | 2 | 752 | 45 | 883 | 91 |
+| kempecycle-nochain.cpp | 5 | 1367 | 196 | 5 | 1220 | 48 | 8323 | 819 |
+| kempecycle-5cycle-nochain.cpp | 3 | 1046 | 196 | 4 | 1016 | 47 | 7250 | 819 |
+| 5cycle.cpp | 1 | 1378 | 415 | 4 | 1081 | 47 | 17375 | 2604 |
+| 5cycle-nochain.cpp | 3 | 1555 | 415 | 4 | 1081 | 47 | 18030 | 2604 |
+| baseline.cpp | 15 | 3831 | 415 | 6 | 1345 | 49 | 27000 | 2604 |
+
+*todo neviem preco zrazu su tie vstupy 6 a 7 o 1 pomalsie ako predtym. to by sa nemalo diat*
+
+## Skusime lepsi satsolver a vieme riesit vacsie vstupy
+
+Pouzijeme kissat a vieme vpohode riesit aj velke vstupy, ale asi to nebudeme robit s tymi pomalymi programami, lebo to by trvalo velmi dlho predsalen
+
+Nakodil som novy `checker-kissat.cpp` ktory pouziva tento novy checker - *tu budu aj nejake vysledky na vacsich vstupoch*
+
+
+# todo
 nejake upgrady na baseline, co je teda zmyslom projektu
 
 - implementovat chaining do kempecycle aj 5cycle zaroven - treba vediet ako by farbenie vyzeralo pre kriticke hrany na 5 cykle
 - kempecycle viem iterovat, ak vhodne pokombinujem kempeho cykly ktore mozu mat rozne farby tak viem najst nejaku novu kriticku hranu
-
-skusit optimalizovat satsolver ale to neni asi podstatne
