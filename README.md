@@ -117,11 +117,12 @@ Ukazeme pocty potrebne pre verdikt o kazdej hrane - tie kde staci najst nekritic
 
 Pouzijeme kissat a vieme vpohode riesit aj velke vstupy, ale asi to nebudeme robit s tymi pomalymi programami, lebo to by trvalo velmi dlho predsalen
 
-Nakodil som novy `checker-kissat.cpp` ktory pouziva tento novy checker - *tu budu aj nejake vysledky na vacsich vstupoch*
+Nakodil som novy `checker-kissat.cpp` ktory pouziva tento novy checker - *todo tu budu aj nejake vysledky na vacsich vstupoch*
+
+## Skontrolovat vsetky grafy
+
+todo - chceli by sme vyskusat spustit niektore algoritmy na vsetkych znamych (malych) snarkoch, a povedat nejake ich vlastnosti. napr.: ktore z nich potrebuju viac ako jeden beh zafarbitelnosti a preco
 
 
 # todo
-nejake upgrady na baseline, co je teda zmyslom projektu
-
-- implementovat chaining do kempecycle aj 5cycle zaroven - treba vediet ako by farbenie vyzeralo pre kriticke hrany na 5 cykle
 - kempecycle viem iterovat, ak vhodne pokombinujem kempeho cykly ktore mozu mat rozne farby tak viem najst nejaku novu kriticku hranu
