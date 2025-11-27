@@ -1,5 +1,23 @@
 # Rocnikovy projekt - Jan Gottweis
 
+## Ako to spustit
+
+Aby nebolo treba citat si vsetky kecy, toto by malo stacit na spustenie programu.
+
+```bash
+source .bashrc
+
+parse_graph vstupy/petersen.g6 vstupy/petersen.in
+
+run_include kempecycle-samecolor.cpp checker/checker-kissat.cpp < vstupy/petersen.in > vystupy/petersen.out
+```
+
+`kempecycle-samecolor.cpp` je to najrychlejsie co som zatial spravil
+
+`checker-kissat` pouziva kissat solver, neviem ci je lepsie pouzit nejaky iny...
+
+## Nasleduju vsetky kecy
+
 `baseline` program len vyskusa vyhodit kazdu hranu z grafu a ak nie je kriticka ani graf nie je
 
 zatial berie vstupy vo velmi konkretnom tvare jeden sposob ako ich vyrobit je napriklad:

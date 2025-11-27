@@ -4,11 +4,13 @@ using namespace std;
 
 int main(int argc, char* argv[]){
     int count;
-    if(argc<2)count = 100;
-    else count = atoi(argv[1]);
-    cerr<<count<<endl;
+    count = atoi(argv[1]);
+    if(count == -1){
+        cerr << "parsujem vsetky" << endl;
+    }
+    else cerr<<"parsujem " << count<<endl;
     string s; cin>>s;
-    while(s != "koniec"&& count--){
+    while(s != "koniec"&& count--!=0){
         cout<<"graph"<<endl;
         string dummy; cin>>dummy>>dummy;
         

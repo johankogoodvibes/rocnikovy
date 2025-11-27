@@ -142,11 +142,11 @@ bool check_critical(vector<vector<int>>& g) {
         if (!is_colorable()) {
             if(ok)cerr<<"- has answer: "<<runs<<" runs ";
             ok = false;
-            unignore_edge(a, b);
-            continue;
-            // delete_critical_checker();
-            // return false;
-        }
+            // unignore_edge(a, b);
+            // continue;
+            delete_critical_checker();
+            return false;
+        } 
         for (int i = 0; i < (int)g.size(); i++) {
             for (auto j : g[i]) {
                 edgecolors[{i, j}] = get_edge_color(i, j);

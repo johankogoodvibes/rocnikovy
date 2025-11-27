@@ -188,7 +188,7 @@ function parse_graph(){
     mkdir -p $BINDIR
     local graph=$1
     local where=$2
-    local count=${3:-100}
+    local count=${3:--1}
     if [ "parse.cpp" -nt "$BINDIR/parse" ] || [ "showg.c" -nt "$BINDIR/showg" ];then
         gcc -o $BINDIR/showg showg.c && g++ parse.cpp -o $BINDIR/parse && echo compiled && ./$BINDIR/showg < $graph | ./$BINDIR/parse $count > $where
     else
