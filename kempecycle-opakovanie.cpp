@@ -11,6 +11,11 @@
 #include "template.h"
 
 map<pair<int, int>, int> edgecolors;
+
+int aktualny_tah;
+const int MAX_REPETITIONS = 3;
+const int min_difference = 0;
+
 int get_current_edge_color(int a, int b) {
     return edgecolors[{a, b}];
 }
@@ -66,9 +71,9 @@ void apply_kempeswitch(vector<int>& cycle, int c) {
         prev = i;
     }
 }
-void solve_kempecycle(vector<vector<int>>& g, set<pair<int, int>>& solved, int a, int b, set<pair<int, int>>& toto_kolo);
+void solve_kempecycle(vector<vector<int>>& g, map<pair<int, int>, int>& solved, int a, int b, set<pair<int, int>>& toto_kolo, map<pair<int, int>, int>& last_visit);
 
-void solve_for_cycles(vector<vector<int>>& g, set<pair<int, int>>& solved, int a, int b, vector<int>& cyklusa, vector<int>& cyklusb, int c1, int c2, set<pair<int, int>>& toto_kolo) {
+void solve_for_cycles(vector<vector<int>>& g, map<pair<int, int>, int>& solved, int a, int b, vector<int>& cyklusa, vector<int>& cyklusb, int c1, int c2, set<pair<int, int>>& toto_kolo, map<pair<int, int>, int>& last_visit) {
     set<int> allcolors = {1, 2, 3};
     allcolors.erase(c1);
     allcolors.erase(c2);
@@ -77,9 +82,6 @@ void solve_for_cycles(vector<vector<int>>& g, set<pair<int, int>>& solved, int a
     // dbg("cykly", cyklusa, cyklusb);
     auto res = get_connections(g, cyklusa, cyklusb, c3);
     for (auto i : res) {
-        if (solved.count({min(i.first, i.second), max(i.first, i.second)})) {
-            continue;
-        }
         vector<int> kempe_switch_cycle = {};
         int start = 0;
         while (cyklusa[start] != i.first && cyklusa[start] != i.second) {
@@ -105,29 +107,32 @@ void solve_for_cycles(vector<vector<int>>& g, set<pair<int, int>>& solved, int a
         apply_kempeswitch(kempe_switch_cycle, c3);
         // dbg_graph(g);
 
-        solve_kempecycle(g, solved, i.first, i.second, toto_kolo);
+        solve_kempecycle(g, solved, i.first, i.second, toto_kolo, last_visit);
 
         apply_kempeswitch(kempe_switch_cycle, c3);
         // dbg_graph(g);
     }
 }
 
-void solve_kempecycle(vector<vector<int>>& g, set<pair<int, int>>& solved, int a, int b, set<pair<int, int>>& toto_kolo) {
-    if(a > b)swap(a, b);
-    if (solved.count({a, b})) return;
-    // dbg("nasiel som", a, b);
-    solved.insert({a, b});
+void solve_kempecycle(vector<vector<int>>& g, map<pair<int, int>, int>& solved, int a, int b, set<pair<int, int>>& toto_kolo, map<pair<int, int>, int>& last_visit) {
+    if (a > b) swap(a, b);
+    if (solved[{a, b}] == MAX_REPETITIONS) return;
+    // dbg("chcel by som", a, b, last_visit.count({a, b}));
+    if (last_visit.count({a, b}) && last_visit[{a, b}] + min_difference > aktualny_tah) return;
+    // dbg("prehladavam", a, b);
+    last_visit[{a, b}] = aktualny_tah++;
+    solved[{a, b}]++;
     toto_kolo.insert({a, b});
     int s1 = g[a][0] != b ? g[a][0] : g[a][1], s2 = g[b][0] != a ? g[b][0] : g[b][1];
     int c1 = get_current_edge_color(a, s1), c2 = get_current_edge_color(b, s2);
     if (c1 != c2) {
         vector<int> cyklusa = get_kempe_cycle(g, a, c1, c2), cyklusb = get_kempe_cycle(g, b, c2, c1);
-        solve_for_cycles(g, solved, a, b, cyklusa, cyklusb, c1, c2, toto_kolo);
+        solve_for_cycles(g, solved, a, b, cyklusa, cyklusb, c1, c2, toto_kolo, last_visit);
     } else {
         for (int c2 = 1; c2 <= 3; c2++) {
             if (c2 == c1) continue;
             vector<int> cyklusa = get_kempe_cycle(g, a, c1, c2), cyklusb = get_kempe_cycle(g, b, c1, c2);
-            solve_for_cycles(g, solved, a, b, cyklusa, cyklusb, c1, c2, toto_kolo);
+            solve_for_cycles(g, solved, a, b, cyklusa, cyklusb, c1, c2, toto_kolo, last_visit);
         }
     }
 }
@@ -135,7 +140,7 @@ void solve_kempecycle(vector<vector<int>>& g, set<pair<int, int>>& solved, int a
 
 bool check_critical(vector<vector<int>>& g) {
     set<pair<int, int>> edges;
-    set<pair<int, int>> solved;
+    map<pair<int, int>, int> solved, last_visit;
     create_critical_checker(g);
     // file << g.size() << endl;
     // file << g.size() * 3 / 2 << endl;
@@ -145,13 +150,13 @@ bool check_critical(vector<vector<int>>& g) {
         }
     }
     int runs = 0;
+    aktualny_tah = 0;
     while (!edges.size() == 0) {
         auto [a, b] = *edges.begin();
         edges.erase({a, b});
-        if (solved.count({a, b})) continue;
+        if (solved[{a, b}] != 0) continue;
         ignore_edge(a, b);
         runs++;
-        dbg("farbim", a, b);
         if (!is_colorable()) {
             delete_critical_checker();
             return false;
@@ -164,13 +169,14 @@ bool check_critical(vector<vector<int>>& g) {
         // dbg_graph(g);
         set<pair<int, int>> toto_kolo = {{a, b}};
 
-        solve_kempecycle(g, solved, a, b, toto_kolo);
+        solve_kempecycle(g, solved, a, b, toto_kolo, last_visit);
         // file << toto_kolo.size() << "\n";
         // for (auto [a, b] : toto_kolo) {
         //     file << a << ' ' << b << "\n";
         // }
         unignore_edge(a, b);
     }
+    // dbg(solved, last_visit);
     delete_critical_checker();
     return true;
 }
