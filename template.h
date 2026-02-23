@@ -1,6 +1,6 @@
 #ifndef temp
 #define temp
-#include<iostream>
+#include <iostream>
 #include <vector>
 #include <chrono>
 using namespace std;

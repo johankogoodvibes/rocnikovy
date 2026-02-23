@@ -7,7 +7,7 @@ Aby nebolo treba citat si vsetky kecy, toto by malo stacit na spustenie programu
 ```bash
 source .bashrc
 
-parse_graph vstupy/petersen.g6 vstupy/petersen.in
+parse_graph vstupy/petersen.g6 vstupy/petersen.in 100 # rozparsuje 100 grafov (moze aj viac...)
 
 run_include kempecycle-samecolor.cpp checker/checker-kissat.cpp < vstupy/petersen.in > vystupy/petersen.out
 ```
@@ -129,7 +129,7 @@ Ukazeme pocty potrebne pre verdikt o kazdej hrane - tie kde staci najst nekritic
 | 5cycle-nochain.cpp | 3 | 1555 | 415 | 4 | 1081 | 47 | 18030 | 2604 |
 | baseline.cpp | 15 | 3831 | 415 | 6 | 1345 | 49 | 27000 | 2604 |
 
-*todo neviem preco zrazu su tie vstupy 6 a 7 o 1 pomalsie ako predtym. to by sa nemalo diat*
+*je to trochu odlisne ako predtym, lebo som pouzil iny sat solver*
 
 ## Skusime lepsi satsolver a vieme riesit vacsie vstupy
 
@@ -141,6 +141,35 @@ Nakodil som novy `checker-kissat.cpp` ktory pouziva tento novy checker - *todo t
 
 todo - chceli by sme vyskusat spustit niektore algoritmy na vsetkych znamych (malych) snarkoch, a povedat nejake ich vlastnosti. napr.: ktore z nich potrebuju viac ako jeden beh zafarbitelnosti a preco
 
+## nedostatok kempecycle-samecolor
+ked si prepinam hrany, aby som mal "viac moznosti" mam v skutocnosti len asi viac moznosti. moze sa stat ze niektore moznosti stratim. vysledky ukazuju ze to je stale asi lepsie ako bez toho, ale nemusi to byt vzdy (protipriklad 148 graf z test-06)
+
+## mal som chybu v kempecycle.cpp
+ukladal som si do zoznamu vyriesenych hran usporiadane dvojice, teda obcas som musel hranu kontrolovat viac krat
+
+je viac moznosti ako to spravit. 
+kempecycle-stary to robi tak ze si uklada usporiadane dvojice
+kempecycle-swap to vymeni tak aby vzdy (a, b) platilo a < b
+kempecycle-noswap to ulozi tak ze (a, b) a < b ale pocita tak ako mu to bolo zadane
+(tie programy nie su ako samostatne subory, to by bolo zbytocne)
+nove vysledky su tu:
+
+| prog/in | test-00-petersen.in | test-01-critical.in | test-02-not_critical40.in | test-03-not_critical74.in | test-04-random38.in1 | test-05-random.in2 | test-06-velkecritical.in | test-07-jozkove_critical.in | test-08-mazak-dot50.in |
+| - | - | - | - | - | - | - | - | - | - |
+| kempecycle-samecolor.cpp | 1 | 100 | 50 | 2 | 695 | 45 | 513 | 13 | 105 |
+| kempecycle-swap.cpp | 2 | 138 | 58 | 2 | 746 | 45 | 887 | 71 | 170 |
+| kempecycle-noswap.cpp | 1 | 131 | 56 | 2 | 743 | 45 | 905 | 94 | 191 |
+| kempecycle-stary.cpp | 1 | 136 | 56 | 2 | 752 | 45 | 883 | 91 | 180 |
+
+*todo netusim aky je rozdiel logicky medzi swap a noswap, a preco maju rozdielne vysledky*
+
+ten stary moze mat mozno lepsie vysledky, lebo musim hranu prehladat akoby *z druhej strany* co ma nuti mat nejake ine farbenie najskor, co mozno znamena ze mam viac moznosti ako pokracovat. Ak som navyse nemusel hladat uplne nove farbenie, ale dopracoval som sa k tomu kempeswitchami, mozem mat lepsie riesenie, ako bez toho.
+
+## je to nahodne
+Ak zmenim sat solver casto najdem ine farbenie, a potom dostanem trosku iny vysledok. +-10% som to tak od oka odhadol.
+Dolezite ale je, ze to nezavisi len od grafu, ale aj od toho ake farbenia dostavam
 
 # todo
+- mazak povedal ze treba to robit nejak inak ako satsolverom. ze to je pomale
+- tiez povedal, nech to robim na viac jadrach naraz a nech nejak rozumne spravim vstup, lebo rozparsovat tie veci trva dlho
 - kempecycle viem iterovat, ak vhodne pokombinujem kempeho cykly ktore mozu mat rozne farby tak viem najst nejaku novu kriticku hranu
