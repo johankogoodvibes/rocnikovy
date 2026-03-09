@@ -187,12 +187,11 @@ function compare(){
 function parse_graph(){
     mkdir -p $BINDIR
     local graph=$1
-    local where=$2
-    local count=${3:--1}
+    local count=${2:--1}
     if [ "parse.cpp" -nt "$BINDIR/parse" ] || [ "showg.c" -nt "$BINDIR/showg" ];then
-        gcc -o $BINDIR/showg showg.c && g++ parse.cpp -o $BINDIR/parse && echo compiled && ./$BINDIR/showg < $graph | ./$BINDIR/parse $count > $where
+        gcc -o $BINDIR/showg showg.c && g++ parse.cpp -o $BINDIR/parse && echo compiled 1>&2 && ./$BINDIR/showg < $graph | ./$BINDIR/parse $count
     else
-        echo up to date && ./$BINDIR/showg < $graph | ./$BINDIR/parse $count > $where
+        echo up to date 1>&2 && ./$BINDIR/showg < $graph | ./$BINDIR/parse $count
     fi
 }
 

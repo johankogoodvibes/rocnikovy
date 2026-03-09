@@ -2,19 +2,23 @@
 
 ## Ako to spustit
 
-Aby nebolo treba citat si vsetky kecy, toto by malo stacit na spustenie programu.
+__usecase:__ mam .g6 subor a chcem snarky ktore su kriticke:
 
 ```bash
-source .bashrc
+chmod +x filter_critical.sh # aby sa to dalo spustit
 
-parse_graph vstupy/petersen.g6 vstupy/petersen.in 100 # rozparsuje 100 grafov (moze aj viac...)
+./filter_critical.sh vstup.g6 filtered.g6
 
-run_include kempecycle-samecolor.cpp checker/checker-kissat.cpp < vstupy/petersen.in > vystupy/petersen.out
+./filter_critical.sh -l log vstup.g6 filtered.g6 # skoro vsetok vypis pojde do suboru log
+
+./filter_critical.sh -l log -b 200 vstup.g6 filtered.g6 # teraz spracuje v batches po 200 snarkov
+
+./filter_critical.sh -l log -b 200 vstup.g6 filtered.g6 1000 2000 # teraz spracuje zo vstupneho suboru len snarky 1000-2000
 ```
 
-`kempecycle-samecolor.cpp` je to najrychlejsie co som zatial spravil
-
-`checker-kissat` pouziva kissat solver, neviem ci je lepsie pouzit nejaky iny...
+Da sa pomenit nejake veci:
+1. ktory satsolver sa pouziva zatial je to kissat/zchaff - mozu produkovat rozne riesenia staci zmenit `checker/checker-kissat.cpp` za `checker/checker-sat.cpp`
+2. nejake rozne pristupy co som kodil ale ten co je default je myslim najrychlejsi, `kempecycle-samecolor.cpp` zmenit za niektory iny napr.: `baseline.cpp`
 
 ## Nasleduju vsetky kecy
 
@@ -51,7 +55,7 @@ run_all CHECKER.cpp INPUT.in SOURCE1.cpp ...
 run_all checker/checker-sat.cpp vstupy/critical.in baseline.cpp kempecycle-5cycle-nochain.cpp
 ```
 
-*je nevyhnutne pouzit checker-sat ostatne uz nefunguju (ale fungovali :p )*
+*je nevyhnutne pouzit checker-sat/checker-kissat ostatne uz nefunguju (ale fungovali :p )*
 
 berie aj viac grafove vstupy, teda pokial `INPUT.g6` obsahuje viac grafov malo by to byt fajn.
 Nejake prikladove vstupy su aj rozparsovane malo by z nich byt jasne v akom formate su 
@@ -142,10 +146,10 @@ Nakodil som novy `checker-kissat.cpp` ktory pouziva tento novy checker - *todo t
 todo - chceli by sme vyskusat spustit niektore algoritmy na vsetkych znamych (malych) snarkoch, a povedat nejake ich vlastnosti. napr.: ktore z nich potrebuju viac ako jeden beh zafarbitelnosti a preco
 
 ## nedostatok kempecycle-samecolor
-ked si prepinam hrany, aby som mal "viac moznosti" mam v skutocnosti len asi viac moznosti. moze sa stat ze niektore moznosti stratim. vysledky ukazuju ze to je stale asi lepsie ako bez toho, ale nemusi to byt vzdy (protipriklad 148 graf z test-06)
+ked si prepinam hrany, aby som mal "viac moznosti" mam v skutocnosti len "asi viac moznosti". moze sa stat ze niektore moznosti stratim. vysledky ukazuju ze to je stale asi lepsie ako bez toho, ale nemusi to byt vzdy (protipriklad 148 graf z test-06)
 
 ## mal som chybu v kempecycle.cpp
-ukladal som si do zoznamu vyriesenych hran usporiadane dvojice, teda obcas som musel hranu kontrolovat viac krat
+ukladal som si do zoznamu vyriesenych hran usporiadane dvojice, teda obcas som musel hranu kontrolovat viac (2) krat
 
 je viac moznosti ako to spravit. 
 kempecycle-stary to robi tak ze si uklada usporiadane dvojice
@@ -162,6 +166,7 @@ nove vysledky su tu:
 | kempecycle-stary.cpp | 1 | 136 | 56 | 2 | 752 | 45 | 883 | 91 | 180 |
 
 *todo netusim aky je rozdiel logicky medzi swap a noswap, a preco maju rozdielne vysledky*
+*uz tusim. tym ze hrana moze byt "naopak" mozem prechadzat cyklus opacnym smerom, co znamena ze niektore hrany najdem v inom poradi. a kedze to robim rekurzivne a kazdu hranu prehladavam len raz, tak mozem mat pre hranu rozne farbenia, co vedie k roznemu pokracovaniu*
 
 ten stary moze mat mozno lepsie vysledky, lebo musim hranu prehladat akoby *z druhej strany* co ma nuti mat nejake ine farbenie najskor, co mozno znamena ze mam viac moznosti ako pokracovat. Ak som navyse nemusel hladat uplne nove farbenie, ale dopracoval som sa k tomu kempeswitchami, mozem mat lepsie riesenie, ako bez toho.
 
@@ -169,7 +174,29 @@ ten stary moze mat mozno lepsie vysledky, lebo musim hranu prehladat akoby *z dr
 Ak zmenim sat solver casto najdem ine farbenie, a potom dostanem trosku iny vysledok. +-10% som to tak od oka odhadol.
 Dolezite ale je, ze to nezavisi len od grafu, ale aj od toho ake farbenia dostavam
 
+## dovolime viac krat skontrolovat tu istu hranu
+preto mal stary algoritmus obcas lepsie riesenie, lebo mohol viac krat kontrolovat to iste. obcas ho to sice stalo nejake to hladanie farbenia navyse...
+fixol som to ze mozem navstivit hranu viac krat ale staci ju navstivit len raz.
+toto su vysledky pre `MAX_REPETITIONS=3`:
+
+| prog/in | test-00-petersen.in | test-01-critical.in | test-02-not_critical40.in | test-03-not_critical74.in | test-04-random38.in1 | test-05-random.in2 | test-06-velkecritical.in | test-07-jozkove_critical.in | test-08-mazak-dot50.in |
+| - | - | - | - | - | - | - | - | - | - |
+| kempecycle-samecolor.cpp | 1 | 100 | 50 | 2 | 695 | 45 | 513 | 13 | 105 |
+| kempecycle.cpp | 1 | 101 | 50 | 2 | 699 | 45 | 521 | 15 | 115 |
+| kempecycle-stary.cpp | 1 | 123 | 54 | 3 | 739 | 46 | 879 | 82 | 187 |
+
+tu je otazka, na kolko velmi to chceme robit, lebo to celkom isto spomaluje cas behu (mozno nie tak velmi ako volanie sat solverov)
+cas sa ocakavane zhorsil asi 3-nasobne, pricom vysledky nie su zas o tolko lepsie
+
+*este neviem to spustit lebo mi preteka stack vo wsl :((*
+
+### upgrade
+(potencialne) viac ziskam ak su farbenia rozne. teda 2 moznosti:
+1. zakazdym ked sa pytam satsolveru, odomknu sa mi vsetky hrany, znova ich mozem prejst, mozno sa dozviem nieco nove
+2. robim to stale s `MAX_REPETITIONS` ale pocitam si ako daleko od seba musia byt (napriklad: museli nastat aspon 4 kempeho prepnutia) - potom farbenie mozno bude dost ine
+
 # todo
 - mazak povedal ze treba to robit nejak inak ako satsolverom. ze to je pomale
 - tiez povedal, nech to robim na viac jadrach naraz a nech nejak rozumne spravim vstup, lebo rozparsovat tie veci trva dlho
 - kempecycle viem iterovat, ak vhodne pokombinujem kempeho cykly ktore mozu mat rozne farby tak viem najst nejaku novu kriticku hranu
+- pozriet ci mam pre kazdy graf farbenie kde vysledok = 1
