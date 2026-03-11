@@ -6,7 +6,7 @@
 #include "template.h"
 using namespace std;
 
-bool check_critical(vector<vector<int>>& g, bool vsetky) {
+bool check_critical(vector<vector<int>>& g, bool vsetky, int seed) {
     create_critical_checker(g);
     vector<pair<int, int>> edges;
     for (int i = 0; i < (int)g.size(); i++) {

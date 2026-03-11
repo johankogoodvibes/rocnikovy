@@ -133,7 +133,7 @@ void solve_kempecycle(vector<vector<int>>& g, set<pair<int, int>>& solved, int a
 }
 // ofstream file("visualize.txt");
 
-bool check_critical(vector<vector<int>>& g, bool vsetky) {
+bool check_critical(vector<vector<int>>& g, bool vsetky, int seed) {
     set<pair<int, int>> edges;
     set<pair<int, int>> solved;
     create_critical_checker(g);

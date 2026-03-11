@@ -127,7 +127,7 @@ int get_edge_color(int a, int b) {
     return color + 1;
 }
 
-bool is_colorable() {
+bool is_colorable(int seed = 0) {
     runs_count++;
     mng = SAT_InitManager();
     SAT_SetNumVariables(mng, edges.size() * NUM_COLORS);
@@ -141,7 +141,7 @@ bool is_colorable() {
             delete[]clause;
         }
     }
-
+    SAT_SetRandSeed(mng, seed);
     int status = SAT_Solve(mng);
     SAT_ReleaseManager(mng);
     if (status == SATISFIABLE) {
