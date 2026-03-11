@@ -121,13 +121,13 @@ void solve_kempecycle(vector<vector<int>>& g, set<pair<int, int>>& solved, int a
     if (!vyrovnat.empty()) apply_kempeswitch(vyrovnat, vyrovnatc);
 }
 
-bool check_critical(vector<vector<int>>& g) {
+bool check_critical(vector<vector<int>>& g, bool vsetky, int seed) {
     set<pair<int, int>> edges;
     set<pair<int, int>> solved;
     create_critical_checker(g);
     for (int i = 0; i < (int)g.size(); i++) {
         for (auto s : g[i]) {
-            if (i < s) edges.insert({i, s}); 
+            if (i < s) edges.insert({i, s});
         }
     }
     bool ok = true;
@@ -139,14 +139,16 @@ bool check_critical(vector<vector<int>>& g) {
         ignore_edge(a, b);
 
         runs++;
-        if (!is_colorable()) {
-            if(ok)cerr<<"- has answer: "<<runs<<" runs ";
-            ok = false;
-            // unignore_edge(a, b);
-            // continue;
+        if (!is_colorable(seed)) {
+            if (vsetky) {
+                if (ok) cerr << "- has answer: " << runs << " runs ";
+                ok = false;
+                unignore_edge(a, b);
+                continue;
+            }
             delete_critical_checker();
             return false;
-        } 
+        }
         for (int i = 0; i < (int)g.size(); i++) {
             for (auto j : g[i]) {
                 edgecolors[{i, j}] = get_edge_color(i, j);
@@ -161,6 +163,6 @@ bool check_critical(vector<vector<int>>& g) {
     return ok;
 }
 
-int main() {  // toto je furt rovnake
-    read_and_go();
+int main(int argc, char* argv[]) {  // toto je furt rovnake
+    read_and_go(argc, argv);
 }

@@ -113,7 +113,7 @@ void solve_for_cycles(vector<vector<int>>& g, set<pair<int, int>>& solved, int a
 }
 
 void solve_kempecycle(vector<vector<int>>& g, set<pair<int, int>>& solved, int a, int b, set<pair<int, int>>& toto_kolo) {
-    if(a > b)swap(a, b);
+    if (a > b) swap(a, b);
     if (solved.count({a, b})) return;
     // dbg("nasiel som", a, b);
     solved.insert({a, b});
@@ -133,7 +133,7 @@ void solve_kempecycle(vector<vector<int>>& g, set<pair<int, int>>& solved, int a
 }
 // ofstream file("visualize.txt");
 
-bool check_critical(vector<vector<int>>& g) {
+bool check_critical(vector<vector<int>>& g, bool vsetky) {
     set<pair<int, int>> edges;
     set<pair<int, int>> solved;
     create_critical_checker(g);
@@ -145,14 +145,21 @@ bool check_critical(vector<vector<int>>& g) {
         }
     }
     int runs = 0;
+    bool ok = true;
     while (!edges.size() == 0) {
         auto [a, b] = *edges.begin();
         edges.erase({a, b});
         if (solved.count({a, b})) continue;
         ignore_edge(a, b);
         runs++;
-        dbg("farbim", a, b);
+        // dbg("farbim", a, b);
         if (!is_colorable()) {
+            if (vsetky) {
+                if (ok) cerr << "- has answer: " << runs << " runs ";
+                ok = false;
+                unignore_edge(a, b);
+                continue;
+            }
             delete_critical_checker();
             return false;
         }
@@ -172,9 +179,9 @@ bool check_critical(vector<vector<int>>& g) {
         unignore_edge(a, b);
     }
     delete_critical_checker();
-    return true;
+    return ok;
 }
 
-int main() {  // toto je furt rovnake
-    read_and_go();
+int main(int argc, char* argv[]) {  // toto je furt rovnake
+    read_and_go(argc, argv);
 }

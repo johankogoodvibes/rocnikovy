@@ -32,19 +32,27 @@ function needs_recompile() {
     return 1  # No recompilation needed
 }
 
-function run_include(){
-    mkdir -p $BINDIR
+function run_include() {
+    mkdir -p "$BINDIR"
+
     local exe=${1%.*}
     local full_path=$2
     local path=$(dirname "$full_path")
     local source=$(basename "$full_path")
-    local inlcude=${source%.*}
-    make -C $path $inlcude.o 1>&2
-    if needs_recompile "$exe" "$exe.cpp" "$path/$inlcude.o" ;then
-        echo $CXX $CXXFLAGS $exe.cpp $path/$inlcude.o -o $BINDIR/$exe 1>&2
-        echo compiling "$exe" 1>&2 && $CXX $CXXFLAGS $exe.cpp $path/$inlcude.o -o $BINDIR/$exe && echo compiled 1>&2 && echo 1>&2 && ./$BINDIR/$exe
+    local include=${source%.*}
+
+    make -C "$path" "$include.o" 1>&2
+
+    if needs_recompile "$exe" "$exe.cpp" "$path/$include.o"; then
+        echo $CXX $CXXFLAGS "$exe.cpp" "$path/$include.o" -o "$BINDIR/$exe" 1>&2
+        echo compiling "$exe" 1>&2 &&
+        $CXX $CXXFLAGS "$exe.cpp" "$path/$include.o" -o "$BINDIR/$exe" &&
+        echo compiled 1>&2 &&
+        echo 1>&2 &&
+        "./$BINDIR/$exe" "${@:3}" "${@:4}"
     else
-        echo "up to date" 1>&2 && ./$BINDIR/$exe
+        echo "up to date" 1>&2 &&
+        "./$BINDIR/$exe" "${@:3}" "${@:4}"
     fi
 }
 
@@ -87,6 +95,30 @@ function run_all(){
 
 function compare(){
     mkdir -p "$OUTDIR" "$ERRDIR"  # Create output and error directories
+
+    usage() {
+        echo "Usage:"
+        echo "  $0 [-d] [-a] CHECKER SOURCES..."
+        exit 1
+    }
+
+    local DBG_FLAG="";
+    local ALL_FLAG="";
+    local OPTIND=1
+    while getopts ":da" opt; do
+        case "$opt" in
+            d) DBG_FLAG="--dbg" ;;
+            a) ALL_FLAG="--all" ;;
+            \?) echo "Unknown option: -$OPTARG"; usage ;;
+            :) echo "Option -$OPTARG needs an argument"; usage ;;
+        esac
+    done
+    shift $((OPTIND - 1))
+
+    if [ $# -lt 2 ]; then
+        usage
+    fi
+
     local checker="$1"
     shift  # Shift only the checker argument
     local source=("$@")
@@ -111,13 +143,13 @@ function compare(){
     
     local all_good=true
 
-    for input in ${test_names[@]}; do
+    for input in "${test_names[@]}"; do
         for i in "${!source[@]}"; do
             local comp_file=${source[$i]}
-            echo "running $comp_file < $input" 
+            echo "running $comp_file $DBG_FLAG $ALL_FLAG < $input" 
             mkdir -p "$OUTDIR/${comp_file%.*}"
             mkdir -p "$ERRDIR/${comp_file%.*}"
-            run_include $comp_file $checker < $TESTDIR/$input > $OUTDIR/${comp_file%.*}/${input%.*}.out 2> "$ERRDIR/${comp_file%.*}/${input%.*}.err"
+            run_include $comp_file $checker $DBG_FLAG $ALL_FLAG < $TESTDIR/$input > $OUTDIR/${comp_file%.*}/${input%.*}.out 2> "$ERRDIR/${comp_file%.*}/${input%.*}.err"
             local runs_count=$(grep "sat solver runs:" "$ERRDIR/${comp_file%.*}/${input%.*}.err" | awk '{print $4}')
             
             results[$i]+=" $runs_count"

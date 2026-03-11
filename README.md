@@ -119,11 +119,13 @@ Zatial sme proste povedali ze kriticky nie je. To ale casto nepovie vela o tom, 
 Preto sme skusili merat to ako dobry mame algoritmus pri nekritickych grafoch trochu inak: skusime pre kazdu hranu odhalit, ci sa ju da odstranit, alebo nie.
 Zaujima nas kolko sat solverov potrebujeme kym odhalime prvu nekriticku hranu a kym to odhalime o vsetkych hranach.
 
-### Novy performance - len vstupy s nekritickymi hranami
+### Novy performance - len vstupy s nekritickymi snarkami
 
-Ukazeme pocty potrebne pre verdikt o kazdej hrane - tie kde staci najst nekriticku hranu su v tabulke vyssie.
+Ukazeme pocty potrebne pre verdikt o kazdej hrane - tie kde staci najst jednu nekriticku hranu su v tabulke vyssie.
 
-| prog/in | test-00-petersen.in | test-01-critical.in | test-02-not_critical40.in | test-03-not_critical74.in | test-04-random38.in1 | test-05-random.in2 | test-06-velkecritical.in | test-07-jozkove_critical.in |
+Viem sa prepnut do tohoto modu pomocou flaggu `-a` alebo `--all` podla toho kde som.
+
+<!-- | prog/in | test-00-petersen.in | test-01-critical.in | test-02-not_critical40.in | test-03-not_critical74.in | test-04-random38.in1 | test-05-random.in2 | test-06-velkecritical.in | test-07-jozkove_critical.in |
 | - | - | - | - | - | - | - | - | - |
 | kempecycle-samecolor.cpp | 1 | 100 | 79 | 21 | 13589 | 3392 | 513 | 13 |
 | kempecycle.cpp | 1 | 136 | 56 | 2 | 752 | 45 | 883 | 91 |
@@ -133,7 +135,14 @@ Ukazeme pocty potrebne pre verdikt o kazdej hrane - tie kde staci najst nekritic
 | 5cycle-nochain.cpp | 3 | 1555 | 415 | 4 | 1081 | 47 | 18030 | 2604 |
 | baseline.cpp | 15 | 3831 | 415 | 6 | 1345 | 49 | 27000 | 2604 |
 
-*je to trochu odlisne ako predtym, lebo som pouzil iny sat solver*
+*je to trochu odlisne ako predtym, lebo som pouzil iny sat solver* -->
+
+| prog/in | test-02-not_critical40.in | test-03-not_critical74.in | test-04-random38.in1 | test-05-random.in2 |
+| - | - | - | - | - |
+| kempecycle-samecolor.cpp | 79 | 21 | 13589 | 3392 |
+| kempecycle.cpp | 91 | 23 | 14075 | 3402 |
+| 5cycle.cpp | 1500 | 77 | 19408 | 3481 |
+| baseline.cpp | 1500 | 111 | 28500 | 3558 |
 
 ## Skusime lepsi satsolver a vieme riesit vacsie vstupy
 
