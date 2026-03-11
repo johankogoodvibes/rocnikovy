@@ -131,7 +131,7 @@ int get_edge_color(int a, int b) {
     return color + 1;
 }
 
-bool is_colorable() {
+bool is_colorable(int seed = 0) {
     runs_count++;
 
     kissat* solver = kissat_init();
@@ -149,7 +149,17 @@ bool is_colorable() {
             kissat_add(solver, 0);  // terminate clause
         }
     }
-
+    if (seed != 0) {
+        kissat_set_option(solver, "seed", seed);
+        kissat_set_option(solver, "target", 2);
+        kissat_set_option(solver, "randec", 1);
+        kissat_set_option(solver, "randecfocused", 1);
+        kissat_set_option(solver, "randecstable", 1);
+        kissat_set_option(solver, "rephase", 1);
+        kissat_set_option(solver, "phasesaving", 0);
+        kissat_set_option(solver, "forcephase", 1);
+        kissat_set_option(solver, "walkinitially", 1);
+    }
     int status = kissat_solve(solver);
     model_val.assign(num_vars + 1, 0);
     if (status == 10) {
