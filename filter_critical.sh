@@ -3,6 +3,7 @@
 source .bashrc
 LOG_FILE=""
 BATCH_SIZE=1
+TOTAL_SAT_RUNS=0
 
 usage() {
     echo "Usage:"
@@ -65,9 +66,10 @@ fi
 TMP_G6=$(mktemp)
 TMP_IN=$(mktemp)
 TMP_OUT=$(mktemp)
+TMP_ERR=$(mktemp)
 
 cleanup() {
-    rm -f "$TMP_G6" "$TMP_IN" "$TMP_OUT"
+    rm -f "$TMP_G6" "$TMP_IN" "$TMP_OUT" "$TMP_ERR"
 }
 trap cleanup EXIT
 
@@ -88,17 +90,27 @@ process_batch() {
         return
     fi
 
+    : > "$TMP_ERR"
 
     if [ -n "$LOG_FILE" ]; then
-        run_include kempecycle-samecolor.cpp checker/checker-kissat.cpp < "$TMP_IN" > "$TMP_OUT" 2>>"$LOG_FILE"
+        run_include kempecycle-samecolor.cpp checker/checker-kissat.cpp \
+            < "$TMP_IN" > "$TMP_OUT" 2> >(tee -a "$LOG_FILE" > "$TMP_ERR")
         run_status=$?
     else
-        run_include kempecycle-samecolor.cpp checker/checker-kissat.cpp < "$TMP_IN" > "$TMP_OUT"
+        run_include kempecycle-samecolor.cpp checker/checker-kissat.cpp \
+            < "$TMP_IN" > "$TMP_OUT" 2> >(tee "$TMP_ERR" >&2)
         run_status=$?
     fi
+
     if [ "$run_status" -ne 0 ]; then
         echo "Graphs $batch_start-$((batch_start + count - 1)): run_include failed"
         return
+    fi
+
+    batch_sat_runs=$(grep -Eo 'sat solver runs:[[:space:]]*[0-9]+' "$TMP_ERR" | tail -n1 | grep -Eo '[0-9]+')
+
+    if [ -n "$batch_sat_runs" ]; then
+        TOTAL_SAT_RUNS=$((TOTAL_SAT_RUNS + batch_sat_runs))
     fi
 
     local i=0
@@ -150,3 +162,4 @@ done < <(sed -n "${START},${END}p" "$INPUT_FILE")
 if [ "$BATCH_COUNT" -gt 0 ]; then
     process_batch "$BATCH_START" "$BATCH_COUNT"
 fi
+echo "total sat solver runs: $TOTAL_SAT_RUNS"
