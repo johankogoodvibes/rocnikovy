@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <fstream>
 #include <map>
 #include <queue>
 #include <set>
@@ -121,10 +122,24 @@ void solve_kempecycle(vector<vector<int>>& g, set<pair<int, int>>& solved, int a
     if (!vyrovnat.empty()) apply_kempeswitch(vyrovnat, vyrovnatc);
 }
 
-bool check_critical(vector<vector<int>>& g, bool vsetky, int seed) {
+ofstream vyfarbenie1("vyfarbenie.txt");
+void vyfarbi(vector<vector<int>>& g) {
+    vyfarbenie1 << "dbg graph" << endl
+                << endl;
+    vyfarbenie1 << g.size() << endl
+                << g.size() * 3 / 2 << endl;
+    for (auto [a, b] : edgecolors) {
+        if (a.first < a.second)
+            vyfarbenie1 << a.first << ' ' << a.second << ' ' << b << "\n";
+    }
+    vyfarbenie1 << "koniec" << endl
+                << endl;
+}
+
+bool check_critical(vector<vector<int>>& g, bool vsetky, vector<vector<int>>& restricted_colorings) {
     set<pair<int, int>> edges;
     set<pair<int, int>> solved;
-    create_critical_checker(g);
+    create_critical_checker(g, restricted_colorings);
     for (int i = 0; i < (int)g.size(); i++) {
         for (auto s : g[i]) {
             if (i < s) edges.insert({i, s});
@@ -139,7 +154,7 @@ bool check_critical(vector<vector<int>>& g, bool vsetky, int seed) {
         ignore_edge(a, b);
 
         runs++;
-        if (!is_colorable(seed)) {
+        if (!is_colorable()) {
             if (vsetky) {
                 if (ok) cerr << "- has answer: " << runs << " runs ";
                 ok = false;
@@ -154,7 +169,7 @@ bool check_critical(vector<vector<int>>& g, bool vsetky, int seed) {
                 edgecolors[{i, j}] = get_edge_color(i, j);
             }
         }
-
+        vyfarbi(g);
         solve_kempecycle(g, solved, a, b);
 
         unignore_edge(a, b);

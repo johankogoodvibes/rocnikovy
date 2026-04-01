@@ -18,8 +18,26 @@ chmod +x filter_critical.sh # aby sa to dalo spustit
 
 Da sa pomenit nejake veci:
 1. ktory satsolver sa pouziva zatial je to kissat/zchaff - mozu produkovat rozne riesenia staci zmenit `checker/checker-kissat.cpp` za `checker/checker-sat.cpp`
-2. nejake rozne pristupy co som kodil ale ten co je default je myslim najrychlejsi, `kempecycle-samecolor.cpp` zmenit za niektory iny napr.: `baseline.cpp`
+2. nejake rozne pristupy co som kodil ale ten co je default je myslim najrychlejsi, `kempecycle-samecolor-susedne.cpp` zmenit za niektory iny napr.: `baseline.cpp`
 
+## este celkom uzitocne
+ak by to predosle nefungovalo, pripadne nestacilo na to co potrebujete, da sa spustit samostatne program na lubovolnom vstupe napriklad takto:
+
+```bash
+source .bashrc
+parse_graph INPUT.g6 GRAPH.in
+run_include kempecycle-samecolor-susedne.cpp checker/checker-sat.cpp < GRAPH.in
+```
+
+a opat sa daju zapinat nejake flagy ale su viac menej len pre potreby mojej prace:
+--single - snazi sa najst take farbenie ze to da na jeden sup - niekde dole je o tom mozno viac
+--all - musi pre kazdu hranu rozhodnut ci je nekriticka - nepotrebne ak len hladame kriticke snarky
+
+```bash
+source .bashrc
+parse_graph INPUT.g6 GRAPH.in
+run_include kempecycle-samecolor-susedne.cpp checker/checker-sat.cpp --all --single < GRAPH.in # aj ked oba flagy naraz asi nedavaju zmysel :)..
+```
 ## Nasleduju vsetky kecy
 
 `baseline` program len vyskusa vyhodit kazdu hranu z grafu a ak nie je kriticka ani graf nie je
@@ -77,7 +95,7 @@ ked najdeme kriticku hranu a pozrieme sa na farbenie zvysku grafu ako na cirkula
 
 pre koncove vrcholy nasej hrany nech su to a, b, vieme ze jedna hrana z nich ma hodnotu 0, ostatne 2 maju rovnaku hodnotu. ked teraz tvorime kempeho cestu z a, lahko dokazeme ze sa zacyklime naspat do a, rovnako aj pre b.
 
-ak kempeho "cyklus" z a mal rovnake hodnoty hran ako ten z b a existuje hrana spajajuca vrchol s cyklu pre a a s cyklu pre b, mame cyklus pre ktory po aplikovani kempe switchu dostaneme validne ohodnotenie v nasom poli ale 0 bude na inej hrane teda dostavame ze aj ta je kriticka
+ak kempeho "cyklus" z a mal rovnake hodnoty hran ako ten z b a existuje hrana spajajuca vrchol z cyklu pre a a z cyklu pre b, mame cyklus pre ktory po aplikovani kempe switchu dostaneme validne ohodnotenie v nasom poli ale 0 bude na inej hrane teda dostavame ze aj ta je kriticka
 
 ### kempecycle-nochain
 implementuje tuto myslienku s tym ze zatial prehlasi hrany za kriticke ale uz nepokracuje s algoritmom aj pre ne
@@ -199,13 +217,42 @@ cas sa ocakavane zhorsil asi 3-nasobne, pricom vysledky nie su zas o tolko lepsi
 
 *este neviem to spustit lebo mi preteka stack vo wsl :((*
 
-### upgrade
+## hladam pre kazdy graf farbenie kde pocet volani = 1
+
+nejaky graf kde to neplati pre `samecolor` a `kissat` je `06-148`, plati to pre `zchaff` co je sranda.
+jediny rozdiel medzi farbeniami ktore nasli je ze zamenia 1 za 3 (modru za zltu)
+seed az tak nemeni ako farbenie vyzera. ked som nastavoval aj nejake dalsie flagy trochu sa to menilo, ale nie az tak.
+
+### preco vymenenie farieb robi zlobu?
+tym ze farby su nejako zoradene, preferujem niektore moznosti skorej ako in. ked robim *prepnutie pre viac moznosti* preferujem ten cyklus ktory zacina mensiou farbou. zamenenim 1 za 3 zmenim to ktory cyklus prepnem -> co vedie k inym farbeniam.
+Niekedy sa oplati to, inokedy zas nieco ine
+
+### treba nejak systematicky hladat vsetky farbenia
+
+robim to nakoniec tak ze zakazujem ten vysledok co som mal predtym - dodam si clause do satsolveru
+
+### kazdy graf sa da na jeden sup? mozno
+zatial vsetky co som skusal tak sa dali spravit na jeden sup - skusal som vsetky snarky z houseofgraphs
+
+### upgrade napad
 (potencialne) viac ziskam ak su farbenia rozne. teda 2 moznosti:
 1. zakazdym ked sa pytam satsolveru, odomknu sa mi vsetky hrany, znova ich mozem prejst, mozno sa dozviem nieco nove
 2. robim to stale s `MAX_REPETITIONS` ale pocitam si ako daleko od seba musia byt (napriklad: museli nastat aspon 4 kempeho prepnutia) - potom farbenie mozno bude dost ine
 
+## optimalizacia - susedne
+
+moj algoritmus doteraz ignoroval moznost kde som vedel jednym prepnutim presunut 0 na hranu ktora susedela s 0.
+toto som explicitne dorobil aj do `kempecycle` => `kempecycle-susedne` aj `kempecycle-samecolor`=>`kempecycle-samecolor-susedne` a dava to este o chlp lepsie vysledky - aj cas aj pocet volani
+
+| prog/in | test-00-petersen.in | test-01-critical.in | test-02-not_critical40.in | test-03-not_critical74.in | test-06-velkecritical.in | test-07-jozkove_critical.in |
+| - | - | - | - | - | - | - |
+| kempecycle-samecolor-susedne.cpp | 1 | 100 | 50 | 2 | 504 | 6 |
+| kempecycle-samecolor.cpp | 1 | 100 | 50 | 2 | 513 | 13 |
+| kempecycle-susedne.cpp | 1 | 101 | 51 | 2 | 561 | 19 |
+| kempecycle.cpp | 2 | 138 | 58 | 2 | 887 | 71 |
+
 # todo
 - mazak povedal ze treba to robit nejak inak ako satsolverom. ze to je pomale
-- tiez povedal, nech to robim na viac jadrach naraz a nech nejak rozumne spravim vstup, lebo rozparsovat tie veci trva dlho
+- ~~tiez povedal, nech to robim na viac jadrach naraz a nech nejak rozumne spravim vstup, lebo rozparsovat tie veci trva dlho~~
 - kempecycle viem iterovat, ak vhodne pokombinujem kempeho cykly ktore mozu mat rozne farby tak viem najst nejaku novu kriticku hranu
-- pozriet ci mam pre kazdy graf farbenie kde vysledok = 1
+- ~~pozriet ci mam pre kazdy graf farbenie kde vysledok = 1~~

@@ -70,14 +70,14 @@ void different_colors(int a, int b) {
     }
 }
 
-void create_critical_checker(vector<vector<int>>& g) {
+void create_critical_checker(vector<vector<int>>& g, vector<pair<pair<int, int>, int>> restricted_colors) {
     graph = &g;
     for (int i = 0; i < (int)g.size(); i++) {
         for (auto j : g[i]) {
             registruj_hranu(i, j);
         }
     }
-    clauses.resize(edges.size() + 1); // posledne pole je na clauses pre rozdielnost farieb hran
+    clauses.resize(edges.size() + 1);  // posledne pole je na clauses pre rozdielnost farieb hran
 
     configure_edges();
 
@@ -104,11 +104,11 @@ int get_edge_color(int a, int b) {
     if (get_edge_id(a, b) == main_ignored_id) return 0;
     if (ignored.count(get_edge_id(a, b)) != 0) {
         // dbg("incidentna hrana", a, b, "ignorujem", main_ignored);
-        if(main_ignored.count(a))swap(a, b);
+        if (main_ignored.count(a)) swap(a, b);
         // dbg("chcem najst farby vrcholu", a);
         set<int> av = {1, 2, 3};
-        for(auto i : (*graph)[a]){
-            if(i == b)continue;
+        for (auto i : (*graph)[a]) {
+            if (i == b) continue;
             av.erase(get_edge_color(a, i));
         }
         // dbg("mozem pouzit len", av);
@@ -124,10 +124,12 @@ int get_edge_color(int a, int b) {
         }
     }
     if (color == -1) cerr << "nieco sa pokazilo, nemam ziadnu farbu " << a << ' ' << b << endl;
+    if (color + 1 == 1) return 3;
+    if (color + 1 == 3) return 1;
     return color + 1;
 }
 
-bool is_colorable(int seed = 0) {
+bool is_colorable(int seed) {
     runs_count++;
     mng = SAT_InitManager();
     SAT_SetNumVariables(mng, edges.size() * NUM_COLORS);
@@ -138,7 +140,7 @@ bool is_colorable(int seed = 0) {
             int* clause = new int[j.size()];
             copy(j.begin(), j.end(), clause);
             SAT_AddClause(mng, clause, j.size(), 1);
-            delete[]clause;
+            delete[] clause;
         }
     }
     SAT_SetRandSeed(mng, seed);
@@ -161,7 +163,7 @@ void ignore_edge(int a, int b) {
     }
     main_ignored = {a, b};
     // dbg(main_ignored);
-    main_ignored_id = get_edge_id(a, b); 
+    main_ignored_id = get_edge_id(a, b);
     for (auto s : (*graph)[a]) {
         ignored.insert(get_edge_id(a, s));
     }
@@ -185,7 +187,7 @@ void delete_critical_checker() {
     mng = NULL;
 }
 
-int get_runs(){return runs_count;}
+int get_runs() { return runs_count; }
 
 void print_stats() {
     cerr << "sat solver runs: " << runs_count << endl;

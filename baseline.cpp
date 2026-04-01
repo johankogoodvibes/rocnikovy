@@ -6,8 +6,8 @@
 #include "template.h"
 using namespace std;
 
-bool check_critical(vector<vector<int>>& g, bool vsetky, int seed) {
-    create_critical_checker(g);
+bool check_critical(vector<vector<int>>& g, bool vsetky, vector<vector<int>>& restricted_colorings) {
+    create_critical_checker(g, restricted_colorings);
     vector<pair<int, int>> edges;
     for (int i = 0; i < (int)g.size(); i++) {
         for (auto s : g[i]) {

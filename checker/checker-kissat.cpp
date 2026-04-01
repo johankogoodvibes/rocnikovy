@@ -10,18 +10,23 @@ extern "C" {
 
 vector<vector<int>>* graph;
 map<pair<int, int>, int> edges;
+vector<pair<int, int>> rids;
 vector<vector<vector<int>>> clauses;
-vector<int> model_val;
+vector<int> model_val, first_model_val;
 int runs_count = 0;
 void registruj_hranu(int a, int b) {
     if (a > b) swap(a, b);
     if (edges.count({a, b})) return;
+    rids.push_back({a, b});
     edges[{a, b}] = (int)edges.size();
 }
 
 int get_edge_id(int a, int b) {
     if (a > b) swap(a, b);
     return edges[{a, b}];
+}
+pair<int, int> get_edge_endpoints(int id) {
+    return rids[id];
 }
 int variable_id(int edgeid, int color) {
     return edgeid * NUM_COLORS + color + 1;
@@ -32,7 +37,12 @@ int true_id(int var) {
 int false_id(int var) {
     return -var;
 }
-
+int edgeid_from_varid(int id) {
+    return (abs(id) - 1) / NUM_COLORS;
+}
+int color_from_varid(int id) {
+    return (abs(id) - 1) % NUM_COLORS;
+}
 void configure_edges() {
     for (auto [k, i] : edges) {
         // dbg("edge ", k, "index", i);
@@ -71,8 +81,13 @@ void different_colors(int a, int b) {
         clauses.back().push_back(clause);
     }
 }
-
-void create_critical_checker(vector<vector<int>>& g) {
+void restrict_edge_color(pair<int, int> e, int restricted_color) {
+    clauses.back().push_back({false_id(variable_id(get_edge_id(e.first, e.second), restricted_color))});
+}
+void create_critical_checker(vector<vector<int>>& g, vector<vector<int>>& restricted_colorings) {
+    runs_count = 0;
+    model_val.clear();
+    first_model_val.clear();
     graph = &g;
     for (int i = 0; i < (int)g.size(); i++) {
         for (auto j : g[i]) {
@@ -95,6 +110,10 @@ void create_critical_checker(vector<vector<int>>& g) {
                 different_colors(a, b);
             }
         }
+    }
+    clauses.push_back({});  // tu budu zablokovane farbenia
+    for (auto i : restricted_colorings) {
+        clauses.back().push_back(i);
     }
 }
 
@@ -131,7 +150,7 @@ int get_edge_color(int a, int b) {
     return color + 1;
 }
 
-bool is_colorable(int seed = 0) {
+bool is_colorable(int seed) {
     runs_count++;
 
     kissat* solver = kissat_init();
@@ -166,6 +185,8 @@ bool is_colorable(int seed = 0) {
         for (int v = 1; v <= num_vars; ++v) {
             model_val[v] = (kissat_value(solver, v) > 0) ? 1 : 0;
         }
+
+        if (first_model_val.size() == 0) first_model_val = model_val;
         kissat_release(solver);
         return true;
     } else if (status == 20) {
@@ -177,7 +198,24 @@ bool is_colorable(int seed = 0) {
         return false;
     }
 }
-
+vector<pair<pair<int, int>, int>> get_first_coloring() {
+    vector<pair<pair<int, int>, int>> res;
+    for (int i = 0; i < (int)size(first_model_val); i++) {
+        if (first_model_val[i]) {
+            res.push_back({get_edge_endpoints(edgeid_from_varid(i)), color_from_varid(i) + 1});
+        }
+    }
+    return res;
+}
+vector<int> disable_first_coloring_clause() {
+    vector<int> res;
+    for (int i = 0; i < (int)size(first_model_val); i++) {
+        if (first_model_val[i]) {
+            res.push_back(-i);
+        }
+    }
+    return res;
+}
 void ignore_edge(int a, int b) {
     if (ignored.size() != 0) {
         cerr << "uz ignorujem hranu" << endl;

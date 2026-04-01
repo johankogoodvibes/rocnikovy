@@ -7,15 +7,18 @@ TOTAL_SAT_RUNS=0
 
 usage() {
     echo "Usage:"
-    echo "  $0 [-l LOGFILE] [-b BATCH_SIZE] INPUT.g6 FILTERED_OUTPUT.g6"
-    echo "  $0 [-l LOGFILE] [-b BATCH_SIZE] INPUT.g6 FILTERED_OUTPUT.g6 START END"
+    echo "  $0 [-l LOGFILE] [-b BATCH_SIZE] [-s finds single run coloring] [-a append to file] INPUT.g6 FILTERED_OUTPUT.g6"
+    echo "  $0 [-l LOGFILE] [-b BATCH_SIZE] [-s finds single run coloring] [-a append to file] INPUT.g6 FILTERED_OUTPUT.g6 START END"
     exit 1
 }
-
-while getopts ":l:b:" opt; do
+SINGLE=""
+APPEND=0
+while getopts ":l:b:sa" opt; do
     case "$opt" in
         l) LOG_FILE="$OPTARG" ;;
         b) BATCH_SIZE="$OPTARG" ;;
+        a) APPEND=1 ;;
+        s) SINGLE="--single" ;;
         \?) echo "Unknown option: -$OPTARG"; usage ;;
         :) echo "Option -$OPTARG needs an argument"; usage ;;
     esac
@@ -57,8 +60,9 @@ else
     END=$(wc -l < "$INPUT_FILE")
 fi
 
-: > "$FILTERED_FILE"
-
+if [ "$APPEND" -eq 0 ]; then
+    : > "$FILTERED_FILE"
+fi
 # TMP_G6="tmp/g6"
 # TMP_IN="tmp/in"
 # TMP_OUT="tmp/out"
@@ -93,11 +97,11 @@ process_batch() {
     : > "$TMP_ERR"
 
     if [ -n "$LOG_FILE" ]; then
-        run_include kempecycle-samecolor.cpp checker/checker-kissat.cpp \
+        run_include kempecycle-samecolor.cpp checker/checker-kissat.cpp $SINGLE \
             < "$TMP_IN" > "$TMP_OUT" 2> >(tee -a "$LOG_FILE" > "$TMP_ERR")
         run_status=$?
     else
-        run_include kempecycle-samecolor.cpp checker/checker-kissat.cpp \
+        run_include kempecycle-samecolor.cpp checker/checker-kissat.cpp $SINGLE \
             < "$TMP_IN" > "$TMP_OUT" 2> >(tee "$TMP_ERR" >&2)
         run_status=$?
     fi

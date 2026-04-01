@@ -38,10 +38,10 @@ void dfs5(vector<vector<int>>& g, set<pair<int, int>>& edges, set<pair<int, int>
     return;
 }
 
-bool check_critical(vector<vector<int>>& g, bool vsetky, int seed) {
+bool check_critical(vector<vector<int>>& g, bool vsetky, vector<vector<int>>& restricted_colorings) {
     set<pair<int, int>> edges;
     set<pair<int, int>> solved;
-    create_critical_checker(g);
+    create_critical_checker(g, restricted_colorings);
     for (int i = 0; i < (int)g.size(); i++) {
         for (auto s : g[i]) {
             if (i < s) edges.insert({i, s});

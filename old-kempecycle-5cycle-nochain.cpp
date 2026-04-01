@@ -82,10 +82,10 @@ void dbg_graph(vector<vector<int>>& g) {
     dbg("koniec");
 }
 
-bool check_critical(vector<vector<int>>& g) {
+bool check_critical(vector<vector<int>>& g, bool vsetky, vector<vector<int>>&restricted) {
     set<pair<int, int>> edges;
     set<pair<int, int>> solved;
-    create_critical_checker(g);
+    create_critical_checker(g, restricted);
     for (int i = 0; i < (int)g.size(); i++) {
         for (auto s : g[i]) {
             if (i < s) edges.insert({i, s});
