@@ -6,6 +6,7 @@ BINDIR="programy"
 OUTDIR="vystupy"
 ERRDIR="errdir"
 TESTDIR="vstupy"
+TIMEDIR="timedir"
 
 function cr(){
     # mozno trochu nefunkcne
@@ -37,22 +38,29 @@ function run_include() {
 
     local exe=${1%.*}
     local full_path=$2
-    local path=$(dirname "$full_path")
-    local source=$(basename "$full_path")
+    local path
+    path=$(dirname "$full_path")
+    local source
+    source=$(basename "$full_path")
     local include=${source%.*}
+    local prog_args=("${@:3}")
 
     make -C "$path" "$include.o" 1>&2
 
     if needs_recompile "$exe" "$exe.cpp" "$path/$include.o"; then
-        echo $CXX $CXXFLAGS "$exe.cpp" "$path/$include.o" -o "$BINDIR/$exe" 1>&2
-        echo compiling "$exe" 1>&2 &&
-        $CXX $CXXFLAGS "$exe.cpp" "$path/$include.o" -o "$BINDIR/$exe" &&
-        echo compiled 1>&2 &&
-        echo 1>&2 &&
-        "./$BINDIR/$exe" "${@:3}" "${@:4}"
+        echo "$CXX" "$CXXFLAGS" "$exe.cpp" "$path/$include.o" -o "$BINDIR/$exe" 1>&2
+        echo "compiling $exe" 1>&2
+        $CXX $CXXFLAGS "$exe.cpp" "$path/$include.o" -o "$BINDIR/$exe" || return 1
+        echo "compiled" 1>&2
+        echo 1>&2
     else
-        echo "up to date" 1>&2 &&
-        "./$BINDIR/$exe" "${@:3}" "${@:4}"
+        echo "up to date" 1>&2
+    fi
+
+    if [ -n "${RUN_TIME_FILE:-}" ]; then
+        /usr/bin/time -f "%e" -o "$RUN_TIME_FILE" "./$BINDIR/$exe" "${prog_args[@]}"
+    else
+        "./$BINDIR/$exe" "${prog_args[@]}"
     fi
 }
 
@@ -94,7 +102,7 @@ function run_all(){
 }
 
 function compare(){
-    mkdir -p "$OUTDIR" "$ERRDIR"  # Create output and error directories
+    mkdir -p "$OUTDIR" "$ERRDIR" "$TIMEDIR"
 
     usage() {
         echo "Usage:"
@@ -102,8 +110,8 @@ function compare(){
         exit 1
     }
 
-    local DBG_FLAG="";
-    local ALL_FLAG="";
+    local DBG_FLAG=""
+    local ALL_FLAG=""
     local OPTIND=1
     while getopts ":da" opt; do
         case "$opt" in
@@ -120,25 +128,27 @@ function compare(){
     fi
 
     local checker="$1"
-    shift  # Shift only the checker argument
+    shift
     local source=("$@")
 
     local tests=()
-    for file in "$TESTDIR"/test-*; do  # Iterate through test files
+    for file in "$TESTDIR"/test-*; do
         tests+=("$file")
     done
 
     local results=()
+    local time_results=()
     local test_names=()
 
     for file in "${tests[@]}"; do
+        local test_name
         test_name=$(basename "$file")
         test_names+=("$test_name")
     done
 
-
     for file in "${source[@]}"; do
         results+=("$(basename "$file")")
+        time_results+=("$(basename "$file")")
     done
     
     local all_good=true
@@ -146,56 +156,90 @@ function compare(){
     for input in "${test_names[@]}"; do
         for i in "${!source[@]}"; do
             local comp_file=${source[$i]}
-            echo "running $comp_file $DBG_FLAG $ALL_FLAG < $input" 
+            echo "running $comp_file $DBG_FLAG $ALL_FLAG < $input"
+
             mkdir -p "$OUTDIR/${comp_file%.*}"
             mkdir -p "$ERRDIR/${comp_file%.*}"
-            run_include $comp_file $checker $DBG_FLAG $ALL_FLAG < $TESTDIR/$input > $OUTDIR/${comp_file%.*}/${input%.*}.out 2> "$ERRDIR/${comp_file%.*}/${input%.*}.err"
-            local runs_count=$(grep "sat solver runs:" "$ERRDIR/${comp_file%.*}/${input%.*}.err" | awk '{print $4}')
-            
-            results[$i]+=" $runs_count"
-        done
-        local first_file="$OUTDIR/${source[0]%.*}/${input%.*}.out"
-        local all_match=true  # Flag to track if everything matches
+            mkdir -p "$TIMEDIR/${comp_file%.*}"
 
-        for file in "${source[@]:1}"; do  # Skip first file
+            local out_file="$OUTDIR/${comp_file%.*}/${input%.*}.out"
+            local err_file="$ERRDIR/${comp_file%.*}/${input%.*}.err"
+            local time_file="$TIMEDIR/${comp_file%.*}/${input%.*}.time"
+
+            RUN_TIME_FILE="$time_file" \
+                run_include "$comp_file" "$checker" $DBG_FLAG $ALL_FLAG \
+                < "$TESTDIR/$input" \
+                > "$out_file" \
+                2> "$err_file"
+
+            local runs_count
+            runs_count=$(grep "sat solver runs:" "$err_file" | awk '{print $4}')
+            [ -z "$runs_count" ] && runs_count="-"
+
+            local exec_time
+            exec_time=$(cat "$time_file" 2>/dev/null)
+            [ -z "$exec_time" ] && exec_time="-"
+
+            results[$i]+=" $runs_count"
+            time_results[$i]+=" $exec_time"
+        done
+
+        local first_file="$OUTDIR/${source[0]%.*}/${input%.*}.out"
+        local all_match=true
+
+        for file in "${source[@]:1}"; do
             if ! cmp --silent "$first_file" "$OUTDIR/${file%.*}/${input%.*}.out"; then
                 echo "Outputs differ: $first_file vs $OUTDIR/${file%.*}/${input%.*}.out"
-                all_match=false  # Mark as different
+                all_match=false
             fi
         done
+
         if $all_match; then 
             echo "All outputs match"
-            local out_file="$OUTDIR/${input%.*}.out"
-            if [ -f "$out_file" ] && ! cmp --silent "$first_file" "$out_file"; then
+            local saved_out="$OUTDIR/${input%.*}.out"
+            if [ -f "$saved_out" ] && ! cmp --silent "$first_file" "$saved_out"; then
                 echo "ERROR - Previous output was different!"
                 cp "$first_file" "$OUTDIR/${input%.*}.out2"
             else
                 echo "SAVING RESULT - consistent with previous result"
-                cp "$first_file" "$OUTDIR/${input%.*}.out"
+                cp "$first_file" "$saved_out"
             fi
         else 
             all_good=false
         fi
     done
+
     if $all_good; then
         echo "All programs output the same"
+
         printf "" > table.txt
-        printf "\n| %-15.15s |" "prog/in"  # Left-align, 10-character width for "prog/in"
+        printf "" > table_time.txt
+
+        printf "\n| %-15.15s |" "prog/in"
         printf "\n| prog/in |" >> table.txt
+        printf "\n| prog/in |" >> table_time.txt
+
         for input in "${test_names[@]}"; do
-            printf " %-15.15s |" "$input" # Left-align, 15-character width for input names
+            printf " %-15.15s |" "$input"
             printf " $input |" >> table.txt
+            printf " $input |" >> table_time.txt
         done
+
         printf "\n| --------------- |"
         printf "\n| - |" >> table.txt
+        printf "\n| - |" >> table_time.txt
+
         for _ in "${test_names[@]}"; do
             printf " --------------- |"
             printf " - |" >> table.txt
+            printf " - |" >> table_time.txt
         done
         printf "\n"
         printf "\n" >> table.txt
+        printf "\n" >> table_time.txt
+
         for r in "${results[@]}"; do
-            IFS=' ' read -r program counts <<< "$r"  # Split by spaces
+            IFS=' ' read -r program counts <<< "$r"
 
             printf "| %-15.15s |" "$program"
             printf "| $program |" >> table.txt
@@ -207,9 +251,22 @@ function compare(){
                 printf " %15.15s |" "$count"
                 printf " $count |" >> table.txt
             done
-
             printf "\n"
             printf "\n" >> table.txt
+        done
+
+        for r in "${time_results[@]}"; do
+            IFS=' ' read -r program times <<< "$r"
+
+            printf "| $program |" >> table_time.txt
+
+            local times_array=()
+            read -ra times_array <<< "$times"
+
+            for t in "${times_array[@]}"; do
+                printf " $t |" >> table_time.txt
+            done
+            printf "\n" >> table_time.txt
         done
     else 
         echo "some programs output incorrect"
