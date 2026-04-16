@@ -70,7 +70,8 @@ void different_colors(int a, int b) {
     }
 }
 
-void create_critical_checker(vector<vector<int>>& g, vector<pair<pair<int, int>, int>> restricted_colors) {
+void create_critical_checker(vector<vector<int>>& g, vector<vector<int>>& restricted_colorings) { // toto tiez nefunguje ale tak co uz
+    runs_count = 0;
     graph = &g;
     for (int i = 0; i < (int)g.size(); i++) {
         for (auto j : g[i]) {
@@ -188,7 +189,10 @@ void delete_critical_checker() {
 }
 
 int get_runs() { return runs_count; }
-
+vector<int> disable_first_coloring_clause() {
+    vector<int> res; // nefunguje ale ani to nepotrebujem az tak
+    return res;
+}
 void print_stats() {
     cerr << "sat solver runs: " << runs_count << endl;
 }
