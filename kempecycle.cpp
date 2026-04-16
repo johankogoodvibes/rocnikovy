@@ -27,7 +27,7 @@ void dbg_graph(vector<vector<int>>& g) {
     vyfarbenie1 << "koniec" << endl
                 << endl;
 }
-
+ 
 int get_dest_color(vector<vector<int>>& g, int start, int color) {
     for (auto i : g[start])
         if (get_current_edge_color(start, i) == color) return i;

@@ -29,7 +29,7 @@ int get_dest_color(vector<vector<int>>& g, int start, int color) {
     cerr << "zle je, nemam hladanu farbu " << start << ' ' << color << endl;
     return -1;
 }
-
+ 
 vector<int> get_kempe_cycle(vector<vector<int>>& g, int start, int akt_color, int next_color, int realstart = -1) {
     if (start == realstart) {
         return {};

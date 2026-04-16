@@ -37,3 +37,32 @@ checker/checker-cadical.o
 checker/checker-kissat.o
 popis/
 skuska/
+images/
+obrazky/
+images copy/
+images samecolor/
+visualizers/
+vstupy/velkeSnarky/
+vyfarbenie.txt
+timedir/kempecycle/test-00-petersen.time
+timedir/kempecycle/test-01-critical.time
+timedir/kempecycle/test-02-not_critical40.time
+timedir/kempecycle/test-03-not_critical74.time
+timedir/kempecycle-samecolor/test-00-petersen.time
+timedir/kempecycle-samecolor/test-01-critical.time
+timedir/kempecycle-samecolor/test-02-not_critical40.time
+timedir/kempecycle-samecolor/test-03-not_critical74.time
+timedir/kempecycle-samecolor-susedne/test-00-petersen.time
+timedir/kempecycle-samecolor-susedne/test-01-critical.time
+timedir/kempecycle-samecolor-susedne/test-02-not_critical40.time
+timedir/kempecycle-samecolor-susedne/test-03-not_critical74.time
+timedir/kempecycle-samecolor-susedne/test-04-random38.time
+timedir/kempecycle-samecolor-susedne-lepsie/test-00-petersen.time
+timedir/kempecycle-samecolor-susedne-lepsie/test-01-critical.time
+timedir/kempecycle-samecolor-susedne-lepsie/test-02-not_critical40.time
+timedir/kempecycle-samecolor-susedne-lepsie/test-03-not_critical74.time
+timedir/kempecycle-samecolor-susedne-lepsie/test-04-random38.time
+timedir/kempecycle-susedne/test-00-petersen.time
+timedir/kempecycle-susedne/test-01-critical.time
+timedir/kempecycle-susedne/test-02-not_critical40.time
+timedir/kempecycle-susedne/test-03-not_critical74.time

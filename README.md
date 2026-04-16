@@ -25,7 +25,7 @@ ak by to predosle nefungovalo, pripadne nestacilo na to co potrebujete, da sa sp
 
 ```bash
 source .bashrc
-parse_graph INPUT.g6 GRAPH.in
+parse_graph INPUT.g6 > GRAPH.in
 run_include kempecycle-samecolor-susedne.cpp checker/checker-sat.cpp < GRAPH.in
 ```
 
@@ -35,7 +35,7 @@ a opat sa daju zapinat nejake flagy ale su viac menej len pre potreby mojej prac
 
 ```bash
 source .bashrc
-parse_graph INPUT.g6 GRAPH.in
+parse_graph INPUT.g6 > GRAPH.in
 run_include kempecycle-samecolor-susedne.cpp checker/checker-sat.cpp --all --single < GRAPH.in # aj ked oba flagy naraz asi nedavaju zmysel :)..
 ```
 ## Nasleduju vsetky kecy
@@ -46,7 +46,7 @@ zatial berie vstupy vo velmi konkretnom tvare jeden sposob ako ich vyrobit je na
 
 ```bash
 source .bashrc
-parse_graph INPUT.g6 GRAPH.in
+parse_graph INPUT.g6 > GRAPH.in
 run_include baseline.cpp CRITICAL_CHECKER.cpp < GRAPH.in
 
 # konkretne teda napriklad
@@ -243,13 +243,36 @@ zatial vsetky co som skusal tak sa dali spravit na jeden sup - skusal som vsetky
 
 moj algoritmus doteraz ignoroval moznost kde som vedel jednym prepnutim presunut 0 na hranu ktora susedela s 0.
 toto som explicitne dorobil aj do `kempecycle` => `kempecycle-susedne` aj `kempecycle-samecolor`=>`kempecycle-samecolor-susedne` a dava to este o chlp lepsie vysledky - aj cas aj pocet volani
+ako sa to robi?
+ked mas situaciu c1!=c2 tak hladas cyklus ktory ide z jednej strany kritickej hrany az k vrcholu ktory je susedny s hranou c2. ak taky najdes je c2 kriticka, podobne aj pre c1
 
-| prog/in | test-00-petersen.in | test-01-critical.in | test-02-not_critical40.in | test-03-not_critical74.in | test-06-velkecritical.in | test-07-jozkove_critical.in |
-| - | - | - | - | - | - | - |
-| kempecycle-samecolor-susedne.cpp | 1 | 100 | 50 | 2 | 504 | 6 |
-| kempecycle-samecolor.cpp | 1 | 100 | 50 | 2 | 513 | 13 |
-| kempecycle-susedne.cpp | 1 | 101 | 51 | 2 | 561 | 19 |
-| kempecycle.cpp | 2 | 138 | 58 | 2 | 887 | 71 |
+### este o chlp lepsia optimalizacia
+ak som v c1=c2, tak najskor spravim prepnutie aby som sa dostal do c1!=c2 podobne ako pri `kempecycle-samecolor` ale presne naopak
+vystupom je `kempecycle-samecolor-susedne-lepsi`
+
+## nove vysledky
+
+| prog/in | test-00-petersen.in | test-01-critical.in | test-02-not_critical40.in | test-03-not_critical74.in | test-04-random38.in1 | test-05-random.in2 | test-06-velkecritical.in | test-07-jozkove_critical.in | test-08-mazak-dot50.in |
+| - | - | - | - | - | - | - | - | - | - |
+| kempecycle-samecolor-susedne-lepsie.cpp | 1 | 100 | 50 | 2 | 692 | 45 | 501 | 6 | 101 |
+| kempecycle-samecolor-susedne.cpp | 1 | 100 | 50 | 2 | 691 | 45 | 504 | 6 | 101 |
+| kempecycle-samecolor.cpp | 1 | 100 | 50 | 2 | 695 | 45 | 513 | 13 | 105 |
+| kempecycle-susedne.cpp | 1 | 101 | 51 | 2 | 693 | 45 | 561 | 19 | 115 |
+| kempecycle.cpp | 2 | 138 | 58 | 2 | 746 | 45 | 887 | 71 | 170 |
+
+
+mozme vidiet ze sice su optimalizacie lepsie na pocet behov programu - dokonca sa to blizi k poctu grafov vo vstupe, ale su o cosi pomalsie na cas, takze to mozno neni az taka vyhra...
+
+vyzera ze su satsolvery celkom optimalizovane
+
+| prog/in | test-00-petersen.in | test-01-critical.in | test-02-not_critical40.in | test-03-not_critical74.in | test-04-random38.in1 | test-05-random.in2 | test-06-velkecritical.in | test-07-jozkove_critical.in | test-08-mazak-dot50.in |
+| - | - | - | - | - | - | - | - | - | - |
+| kempecycle-samecolor-susedne-lepsie.cpp | 0.04 | 0.99 | 0.61 | 0.13 | 4.61 | 0.46 | 8.14 | 3.26 | 2.97 |
+| kempecycle-samecolor-susedne.cpp | 0.03 | 0.68 | 0.53 | 0.11 | 4.19 | 0.45 | 6.43 | 2.48 | 2.76 |
+| kempecycle-samecolor.cpp | 0.03 | 1.16 | 0.90 | 0.13 | 5.00 | 0.45 | 14.60 | 8.08 | 8.89 |
+| kempecycle-susedne.cpp | 0.03 | 0.59 | 0.51 | 0.11 | 3.96 | 0.46 | 4.86 | 4.00 | 2.11 |
+| kempecycle.cpp | 0.04 | 0.52 | 0.45 | 0.10 | 3.64 | 0.42 | 4.51 | 10.50 | 2.09 |
+
 
 # todo
 - mazak povedal ze treba to robit nejak inak ako satsolverom. ze to je pomale

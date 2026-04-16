@@ -139,7 +139,7 @@ void solve_kempecycle(vector<vector<int>>& g, set<pair<int, int>>& solved, int a
             vector<int> cyklusa = get_kempe_cycle(g, a, c1, c2), cyklusb = get_kempe_cycle(g, b, c1, c2);
             solve_for_cycles(g, solved, a, b, cyklusa, cyklusb, c1, c2, toto_kolo);
         }
-    }
+    } 
 }
 // ofstream file("visualize.txt");
 
